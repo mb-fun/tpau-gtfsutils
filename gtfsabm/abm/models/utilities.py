@@ -2,6 +2,7 @@ import logging
 import datetime
 import pandas as pd
 import numpy as np
+import os
 
 from activitysim.core import inject
 from activitysim.core import pipeline
@@ -448,7 +449,7 @@ def filter_single_trips_by_time(trips, frequencies, stop_times):
     pipeline.replace_table("trips", trips_filtered_df)
 
 @inject.step()
-def calculate_average_headways(trips, stop_times, frequencies, agency, routes):
+def calculate_average_headways(trips, stop_times, frequencies, agency, routes, output_dir):
     # For each route, and each specified time period, comma separated values, LF/CR for each new route/time period combo:
     #   Agency ID
     #   Agency Name
@@ -504,11 +505,29 @@ def calculate_average_headways(trips, stop_times, frequencies, agency, routes):
 
     route_avg_headway_secs = trip_start_times \
         .groupby(['route_id', 'direction_id'])['delta_seconds'].mean() \
-        .fillna(0)
+        .fillna(0) \
+        .rename('average_headway_secs')
 
-    route_trip_starts_list = trip_start_times.groupby(['route_id', 'direction_id'])['start_time'].apply(list)
+    route_trip_starts_list = trip_start_times.groupby(['route_id', 'direction_id'])['start_time'].apply(list) \
+        .rename('trip_start_times')
     route_avg_headway_data = pd.merge(route_avg_headway_secs, route_trip_starts_list, left_index=True, right_index=True)
-    logger.info('Annie F 04-14-2020 route_avg_headway_data: %s', route_avg_headway_data)
+
+    route_avg_headway_data = route_avg_headway_data[['trip_start_times', 'average_headway_secs']]
+    route_avg_headway_data = route_avg_headway_data.reset_index()
+    route_info = routes.to_frame()[['agency_id', 'route_long_name']]
+    agency_info = agency.to_frame()['agency_name']
+    route_avg_headway_data = route_avg_headway_data.merge(route_info, on='route_id')
+    route_avg_headway_data = route_avg_headway_data.merge(agency_info.to_frame(), on='agency_id')
+
+    route_avg_headway_data['date'] = config.setting('date')
+    # TODO: update to support multiple time ranges
+    route_avg_headway_data['start_time'] = time_ranges[0]['start']
+    route_avg_headway_data['end_time'] = time_ranges[0]['end']
+
+    route_avg_headway_data = route_avg_headway_data.reset_index()
+
+    avg_headways_fname = os.path.join(output_dir, 'average_headways.csv')
+    route_avg_headway_data.to_csv(avg_headways_fname, index=False)
 
 
 def dow_from_date(date):
