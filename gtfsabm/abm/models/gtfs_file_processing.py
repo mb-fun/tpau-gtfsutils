@@ -50,7 +50,7 @@ def convert_all_input_txts_to_csv():
             convert_txt_file_to_csv(file)
 
 def prepare_csv_gtfs_data():
-    gtfs_filename = config.setting('feed_name')
+    gtfs_filename = config.setting('gtfs_filename')
     logger.info('gtfs_filename: %s ' % gtfs_filename)
     gtfs_filepath = config.data_file_path(gtfs_filename)
 
