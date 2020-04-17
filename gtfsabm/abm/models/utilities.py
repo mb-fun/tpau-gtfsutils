@@ -127,7 +127,7 @@ def prune_unused_trips_everywhere(trips, stop_times, frequencies, attributions):
     #   frequencies
     #   attributions (optional table)
 
-    trips_df = trips.to_frame()
+    trips_df = trips.to_frame().reset_index()
     frequencies_df = frequencies.to_frame()
     frequencies_pruned_df = frequencies_df[frequencies_df['trip_id'].isin(trips_df['trip_id'])]
 
@@ -238,6 +238,11 @@ def remove_frequencies_with_no_trips_in_range(unwrapped_frequencies_with_range_d
 def filter_repeating_trips_by_time(trips, frequencies, stop_times):
     # edit start_time and end_time of frequencies partially in range (at least one but not all trips occur in range)
     # edit stop_times for trip if start_time has changed
+
+    # do nothing if no repeating trips
+    frequencies_df = frequencies.to_frame()
+    if (frequencies_df.empty):
+        return
 
     time_ranges = config.setting('time_ranges')
     time_ranges_df = make_time_ranges_df(time_ranges) \
@@ -476,7 +481,7 @@ def calculate_average_headways(trips, stop_times, frequencies, agency, routes):
     unwrapped_repeating_trips = unwrapped_repeating_trips.rename(columns={ 'trip_start': 'start_time' })
     unwrapped_repeating_trips.set_index('trip_id', inplace=True)
 
-    trips_df = trips.to_frame()
+    trips_df = trips.to_frame().reset_index()
 
     trip_start_times = pd.concat([trip_bounds_df, unwrapped_repeating_trips])
     trip_start_times = trip_start_times.merge(trips_df[['trip_id','route_id', 'direction_id']], how='left', on='trip_id')

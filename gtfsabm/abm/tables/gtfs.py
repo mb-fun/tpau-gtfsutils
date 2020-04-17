@@ -51,40 +51,143 @@ def stop_times():
 
 @inject.table()
 def calendar():
-    return register_dataframe_for_table('calendar')
+    headers = [
+        'service_id',
+        'monday',
+        'tuesday',
+        'wednesday',
+        'thursday',
+        'friday',
+        'saturday',
+        'sunday',
+        'start_date',
+        'end_date'
+    ]
+
+    return register_dataframe_for_optional_table('calendar', headers)
 
 @inject.table()
 def calendar_dates():
-    df = register_dataframe_for_table('calendar_dates')
+    headers = [
+        'service_id',
+        'date',
+        'exception_type'
+    ]
+    df = register_dataframe_for_optional_table('calendar_dates', headers)
     return df
 
 @inject.table()
 def fare_attributes():
-    return register_dataframe_for_table('fare_attributes')
+    headers = [
+        'fare_id',
+        'price',
+        'currency_type',
+        'payment_method',
+        'transfers',
+        'agency_id',
+        'transfer_duration'	
+    ]
+    return register_dataframe_for_optional_table('fare_attributes', headers)
 
 @inject.table()
 def fare_rules():
-    return register_dataframe_for_table('fare_rules')
+    headers = [
+        'fare_id',
+        'route_id',
+        'origin_id',
+        'destination_id',
+        'contains_id'
+    ]
+    return register_dataframe_for_optional_table('fare_rules', headers)
 
 @inject.table()
 def shapes():
-    return register_dataframe_for_table('shapes')
+    headers = [
+        'shape_id',
+        'shape_pt_lat',
+        'shape_pt_lon',
+        'shape_pt_sequence',
+        'shape_dist_traveled'
+    ]
+    return register_dataframe_for_optional_table('shapes', headers)
 
 @inject.table()
 def frequencies():
-    return register_dataframe_for_table('frequencies')
+    headers = [
+        'trip_id',
+        'start_time',
+        'end_time',
+        'headway_secs',
+        'exact_times'
+
+    ]
+    return register_dataframe_for_optional_table('frequencies', headers)
 
 @inject.table()
 def transfers():
-    return register_dataframe_for_table('transfers')
+    headers = [
+        'from_stop_id',
+        'to_stop_id',
+        'transfer_type',
+        'min_transfer_time'
+    ]
+    return register_dataframe_for_optional_table('transfers', headers)
+
+@inject.table()
+def pathways():
+    headers = [
+        'pathway_id',
+        'from_stop_id',
+        'to_stop_id',
+        'pathway_mode',
+        'is_bidirectional',
+        'length',
+        'traversal_time',
+        'stair_count',
+        'max_slope',
+        'min_width',
+        'signposted_as',
+        'reversed_signposted_as'
+    ]
+    return register_dataframe_for_optional_table('pathways', headers)
 
 @inject.table()
 def levels():
-    return register_dataframe_for_table('levels')
+    headers = [
+        'level_id',
+        'level_index',
+        'level_name'
+    ]
+    return register_dataframe_for_optional_table('levels', headers)
+
+
+@inject.table()
+def translations():
+    headers = [
+        'table_name',
+        'field_name',
+        'language',
+        'translation',
+        'record_id',
+        'record_sub_id',
+        'field_value'
+    ]
+    return register_dataframe_for_optional_table('translations', headers)
 
 @inject.table()
 def feed_info():
-    return register_dataframe_for_table('feed_info')
+    headers = [
+        'feed_publisher_name',
+        'feed_publisher_url',
+        'feed_lang',
+        'default_lang',
+        'feed_start_date',
+        'feed_end_date',
+        'feed_version',
+        'feed_contact_email',
+        'feed_contact_url'
+    ]
+    return register_dataframe_for_optional_table('feed_info', headers)
 
 @inject.table()
 def attributions():
