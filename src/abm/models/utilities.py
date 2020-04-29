@@ -156,13 +156,11 @@ def filter_repeating_trips_by_time(trips, unwrapped_repeating_trips, frequencies
         return
 
     unwrapped_long = get_long_form_unwrapped_frequencies_inrange_df(unwrapped_repeating_trips)
-    print('Annie F 04-28-2020 unwrapped_long: %s', unwrapped_long)
 
     # trips_in_range = unwrapped_long.groupby(['frequency_start', 'trip_id', 'trip_order'])['in_range'] \
     #     .any() \
     #     .rename(columns={'in_range'})
     # unwrapped_long = unwrapped_long.merge(trips_in_range, on=['frequency_start', 'trip_id', 'trip_order'])
-    # print('Annie F 04-28-2020 unwrapped_long: %s', unwrapped_long)
 
     unwrapped_grouped = unwrapped_long.groupby(['frequency_start', 'trip_id'])
 
@@ -287,8 +285,6 @@ def filter_repeating_trips_by_time(trips, unwrapped_repeating_trips, frequencies
         ] \
     ]
     filtered_frequencies_df = filtered_frequencies_df.drop_duplicates()
-    print('Annie F 04-28-2020 frequencies.to_frame(): %s', frequencies.to_frame())
-    print('Annie F 04-28-2020 filtered_frequencies_df: %s', filtered_frequencies_df)
 
     pipeline.replace_table("trips", trips_filtered_df)
     pipeline.replace_table("frequencies", filtered_frequencies_df)

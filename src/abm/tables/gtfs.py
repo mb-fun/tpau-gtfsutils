@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 @inject.injectable()
 def register_dataframe_for_table(tablename):
-    print('Annie F 04-25-2020 register_dataframe_for_table: %s', tablename)
     df = read_input_table(tablename)
 
     # replace seems necessary for using a table twice in a model, i.e. for merged tables
@@ -19,7 +18,6 @@ def register_dataframe_for_table(tablename):
 def register_dataframe_for_optional_table(tablename, headers, gtfs_processor):
     # returns emtpy dataframe if table not present in input_table_list
 
-    print('Annie F 04-28-2020 gtfs_processor: %s', gtfs_processor)
     tables = gtfs_processor.tables()
     df = read_input_table(tablename) if tablename in tables else pd.DataFrame(columns=headers)
 
