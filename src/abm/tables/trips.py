@@ -84,7 +84,7 @@ def max_miliary_arrival_time(grouped):
     return grouped_df.loc[idx_of_max, trip_id]
 
 
-@inject.table()
+@inject.injectable()
 def trips_extended(trips, calendar, frequencies, stop_times):
     # returns trips with calendar and time information
     # start_date, end_date
@@ -115,7 +115,7 @@ def trips_extended(trips, calendar, frequencies, stop_times):
 
     trips_extended_df['is_repeating'] = trips_extended_df.index.to_series().isin(frequencies_trip_ids)
 
-    inject.add_table('trips_extended', trips_extended_df)
+    # inject.add_table('trips_extended', trips_extended_df, replace=True)
 
     return trips_extended_df
 
@@ -131,7 +131,7 @@ def get_num_trips_for_frequencies(frequencies):
         / frequencies_df['headway_secs'].transform(int) \
     )
 
-@inject.table()
+@inject.injectable()
 def unwrapped_repeating_trips(frequencies, stop_times):
     # returns dataframe with a row for every occurring trip represented by frequencies.txt
     # dataframe returned has frequencies columns with changes/additions:
@@ -181,7 +181,7 @@ def unwrapped_repeating_trips(frequencies, stop_times):
         .rename(columns={ 'start_time': 'trip_start', 'end_time': 'trip_end' }) \
         .drop('duration_seconds', axis='columns')
 
-    inject.add_table('unwrapped_repeating_trips', unwrapped_frequencies_df)
+    # inject.add_table('unwrapped_repeating_trips', unwrapped_frequencies_df, replace=True)
 
     return unwrapped_frequencies_df
     

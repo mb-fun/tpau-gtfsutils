@@ -21,7 +21,6 @@ def settings():
 @inject.step()
 def filter_trips_by_date(trips_extended, trips, calendar_dates):
     # removes trips that do not occur on specified date
-    trips_extended_df = trips_extended.to_frame()
 
     # filter calendars on date range
     date = int(config.setting('date'))
@@ -40,13 +39,13 @@ def filter_trips_by_date(trips_extended, trips, calendar_dates):
     trips_df = trips.to_frame()
     trips_columns = trips_df.columns
 
-    date_in_range = (trips_extended_df['start_date'] <= date) & (date <= trips_extended_df['end_date'])
-    dow_in_service = trips_extended_df[dow] == 1
-    service_added_on_date = trips_extended_df['service_id'].isin(services_added_on_date)
-    service_removed_on_date = trips_extended_df['service_id'].isin(services_removed_on_date)
+    date_in_range = (trips_extended['start_date'] <= date) & (date <= trips_extended['end_date'])
+    dow_in_service = trips_extended[dow] == 1
+    service_added_on_date = trips_extended['service_id'].isin(services_added_on_date)
+    service_removed_on_date = trips_extended['service_id'].isin(services_removed_on_date)
 
     trips_filter = (date_in_range & dow_in_service & ~service_removed_on_date) | service_added_on_date
-    trips_filtered_df = trips_extended_df[trips_filter]
+    trips_filtered_df = trips_extended[trips_filter]
 
     pipeline.replace_table("trips", trips_filtered_df[trips_columns])
 
@@ -121,21 +120,19 @@ def get_long_form_unwrapped_frequencies_inrange_df(unwrapped_repeating_trips):
     time_ranges_df = make_time_ranges_df(time_ranges) \
         .rename(columns={ 'start_time': 'range_start', 'end_time': 'range_end' })
     
-    unwrapped_repeating_trips_df = unwrapped_repeating_trips.to_frame()
-
     # create long-form dataframe with row for each (trip_id, trip_order, time_range)
     range_index_array = time_ranges_df.index.array
     
-    unwrapped_repeating_trips_df['range_index'] = None
-    unwrapped_repeating_trips_df['range_index'] = unwrapped_repeating_trips_df['range_index'].apply(lambda x: np.array(range_index_array))
+    unwrapped_repeating_trips['range_index'] = None
+    unwrapped_repeating_trips['range_index'] = unwrapped_repeating_trips['range_index'].apply(lambda x: np.array(range_index_array))
 
-    unwrapped_repeating_trips_df = unwrapped_repeating_trips_df.explode('range_index')
+    unwrapped_repeating_trips = unwrapped_repeating_trips.explode('range_index')
 
     # HACK I'm not sure why explode is producing duplicates here (1 row explodes to 64 rows instead of 2), but we can remove them here
-    unwrapped_repeating_trips_df = unwrapped_repeating_trips_df.drop_duplicates()
+    unwrapped_repeating_trips = unwrapped_repeating_trips.drop_duplicates()
 
     # determine if in ranges
-    unwrapped_frequencies_with_ranges_df = unwrapped_repeating_trips_df.merge(time_ranges_df, left_on='range_index', right_index=True)
+    unwrapped_frequencies_with_ranges_df = unwrapped_repeating_trips.merge(time_ranges_df, left_on='range_index', right_index=True)
     kwargs = {'in_range' : lambda x: time_range_in_range( \
         x['trip_start'].transform(seconds_since_zero), \
         x['trip_end'].transform(seconds_since_zero), \
@@ -151,8 +148,7 @@ def filter_repeating_trips_by_time(trips, unwrapped_repeating_trips, frequencies
     # edit stop_times for trip if start_time has changed
 
     # do nothing if no repeating trips
-    unwrapped_repeating_trips_df = unwrapped_repeating_trips.to_frame()
-    if (unwrapped_repeating_trips_df.empty):
+    if (unwrapped_repeating_trips.empty):
         return
 
     unwrapped_long = get_long_form_unwrapped_frequencies_inrange_df(unwrapped_repeating_trips)
@@ -286,6 +282,7 @@ def filter_repeating_trips_by_time(trips, unwrapped_repeating_trips, frequencies
     ]
     filtered_frequencies_df = filtered_frequencies_df.drop_duplicates()
 
+
     pipeline.replace_table("trips", trips_filtered_df)
     pipeline.replace_table("frequencies", filtered_frequencies_df)
 
@@ -328,8 +325,6 @@ def filter_single_trips_by_time(trips_extended, trips, frequencies, stop_times):
 
     time_ranges = config.setting('time_ranges')
 
-    trips_extended = trips_extended.to_frame()
-
     # add range information
     trips_extended['inrange'] = get_inrange_df(trips_extended, 'start_time', 'end_time') \
         .any(axis=1)
@@ -342,7 +337,7 @@ def filter_single_trips_by_time(trips_extended, trips, frequencies, stop_times):
     pipeline.replace_table("trips", trips_filtered_df[trips_columns])
 
 @inject.step()
-def calculate_average_headways(trips, stop_times, unwrapped_repeating_trips, agency, routes, output_dir):
+def calculate_average_headways(trips_extended, stop_times, unwrapped_repeating_trips, agency, routes, output_dir):
     # For each route, and each specified time period, comma separated values, LF/CR for each new route/time period combo:
     #   Agency ID
     #   Agency Name
@@ -356,33 +351,27 @@ def calculate_average_headways(trips, stop_times, unwrapped_repeating_trips, age
 
     time_ranges = config.setting('time_ranges')
 
-    unwrapped_repeating_trips = unwrapped_repeating_trips.to_frame()
+    trips_extended = trips_extended.reset_index()
 
     frequency_trip_ids = unwrapped_repeating_trips['trip_id']
 
     stop_times_df = stop_times.to_frame()
-    trip_bounds_df = get_trip_bounds_df(stop_times) \
-        .drop('end_time', axis='columns')
+    single_trip_starts = trips_extended[['trip_id', 'start_time']]
     
     # remove stop_times for trips in frequencies as they should be ignored
-    trip_bounds_df = trip_bounds_df[~trip_bounds_df.index.to_series().isin(frequency_trip_ids)]
+    single_trip_starts = single_trip_starts[~single_trip_starts['trip_id'].isin(frequency_trip_ids)]
 
     # unwrapped_repeating_trips['trip_id'] = unwrapped_repeating_trips['trip_id'] + '_' + unwrapped_repeating_trips['trip_order'].astype(str)
-    unwrapped_repeating_trips = unwrapped_repeating_trips.drop([ \
-        # 'exact_times', \
-        'trip_order', 'frequency_start', 'frequency_end', 'headway_secs', 'trip_end'
-    ], axis='columns')
+    unwrapped_repeating_trips = unwrapped_repeating_trips[['trip_id', 'trip_start']]
     unwrapped_repeating_trips = unwrapped_repeating_trips.rename(columns={ 'trip_start': 'start_time' })
-    unwrapped_repeating_trips.set_index('trip_id', inplace=True)
 
-    trips_df = trips.to_frame().reset_index()
+    trip_start_times = pd.concat([single_trip_starts, unwrapped_repeating_trips])
 
-    trip_start_times = pd.concat([trip_bounds_df, unwrapped_repeating_trips])
-    trip_start_times = trip_start_times.merge(trips_df[['trip_id','route_id', 'direction_id']], how='left', on='trip_id')
+    trip_start_times = trip_start_times.merge(trips_extended.reset_index()[['trip_id','route_id', 'direction_id']], how='left', on='trip_id')
     trip_start_times['start_time_seconds'] = trip_start_times['start_time'].transform(seconds_since_zero)
 
     # calculate deltas
-    trip_start_times.sort_values(['route_id', 'direction_id', 'start_time_seconds'], inplace=True)
+    trip_start_times.sort_values(['route_id', 'direction_id', 'trip_id', 'start_time_seconds'], inplace=True)
     trip_start_times['delta_seconds'] = trip_start_times['start_time_seconds'].diff()
     mask = (trip_start_times['route_id'] != trip_start_times['route_id'].shift(1)) \
         | ( \
