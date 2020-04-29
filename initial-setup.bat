@@ -7,6 +7,8 @@ rem #new install
 pip install activitysim
 pip install yaml
 
+CALL conda deactivate
+
 rem # update to a new release
 rem # pip install -U activitysim
 
