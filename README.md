@@ -7,7 +7,7 @@
 ### Installation/Setup (Windows)
 
 - Install all requirements listed above
-- Download repository (`git clone git@github.com:anniekfifer/gtfsabm.git`)
+- Download repository (`git clone git@github.com:anniekfifer/tpau-gtfsutils.git`)
 - In project root directory, run:
   - `initial-setup.bat`
 
