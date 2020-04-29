@@ -98,6 +98,6 @@ models:
   - filter_trips_by_date
   - filter_single_trips_by_time
   - filter_repeating_trips_by_time
-  # - prune_unused_trips_everywhere
-  # - calculate_average_headways
+  - prune_unused_trips_everywhere
+  - calculate_average_headways
   - cleanup_data_dir
