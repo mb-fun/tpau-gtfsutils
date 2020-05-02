@@ -12,6 +12,6 @@ IF NOT "%1" == "average_headway" (
     EXIT /b
 )
 
-CALL activate gtfsutils
+CALL conda activate gtfsutils
 python main.py -u %1
 CALL conda deactivate

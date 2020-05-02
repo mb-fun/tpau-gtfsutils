@@ -1,7 +1,7 @@
 rem # If you change this name be sure to remove any conda existing sessions
 call conda create -n gtfsutils python=3.7
 
-call activate gtfsutils
+call conda activate gtfsutils
 
 rem #new install
 pip install activitysim
