@@ -5,7 +5,6 @@ call conda activate gtfsutils
 
 rem #new install
 pip install activitysim
-pip install yaml
 
 CALL conda deactivate
 
