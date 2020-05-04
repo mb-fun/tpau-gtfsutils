@@ -25,7 +25,6 @@ from activitysim.core import config
 from activitysim.core.config import setting
 from activitysim.core import pipeline
 
-
 valid_utilities = [ \
     'average_headway', \
 ]
@@ -42,6 +41,19 @@ def process_args():
     # activitysim process args
     config.handle_standard_args(parser)
 
+def run_pipeline():
+
+    # If you provide a resume_after argument to pipeline.run
+    # the pipeline manager will attempt to load checkpointed tables from the checkpoint store
+    # and resume pipeline processing on the next submodel step after the specified checkpoint
+    resume_after = setting('resume_after', None)
+
+    if resume_after:
+        print("resume_after", resume_after)
+
+    pipeline.run(models=setting('models'), resume_after=resume_after)
+    pipeline.close_pipeline()
+
 def run():
 
     process_args()
@@ -54,21 +66,21 @@ def run():
 
     tracing.delete_csv_files()
 
-    # If you provide a resume_after argument to pipeline.run
-    # the pipeline manager will attempt to load checkpointed tables from the checkpoint store
-    # and resume pipeline processing on the next submodel step after the specified checkpoint
-    resume_after = setting('resume_after', None)
-
-    if resume_after:
-        print("resume_after", resume_after)
-
     config_path = os.path.join(config.configs_dir(), utilityconfig.config_file())
-    config_yaml = yaml.load(open(config_path))
+    config_yaml = yaml.load(open(config_path), Loader=yaml.BaseLoader)
 
     for gtfs_file in config_yaml['gtfs_files']:
         utilityconfig.set_current_feed(gtfs_file)
-        pipeline.run(models=setting('models'), resume_after=resume_after)
-        pipeline.close_pipeline()
+
+        if 'time_ranges' in config_yaml.keys():
+            for time_range in config_yaml['time_ranges']:
+                utilityconfig.set_current_time_range(time_range)
+                run_pipeline()
+
+        else:
+            if 'time_range' in config_yaml.keys():
+                utilityconfig.set_current_time_range(config_yaml['time_range'])
+            run_pipeline()
 
 
 if __name__ == '__main__':

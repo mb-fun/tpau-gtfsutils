@@ -65,17 +65,12 @@ def seconds_since_zero(military):
 def time_range_in_range(start_time_a, end_time_a, start_time_b, end_time_b):
     return (start_time_b <= start_time_a) & (end_time_a <= end_time_b)
 
-def make_time_ranges_df(time_ranges):
-    # Returns dataframe of time_ranges with columns start_time, end_time
-
-    start_times = []
-    end_times = []
-
-    for time_range in time_ranges:
-        start_times.append(time_range['start'])
-        end_times.append(time_range['end'])
-
-    return pd.DataFrame({ 'start_time': start_times, 'end_time': end_times})
+def make_time_range_df():
+    # Returns dataframe of time_range with columns start_time, end_time
+    time_range = utilityconfig.get_current_time_range()
+    debug = pd.DataFrame({ 'start_time': time_range['start'], 'end_time': time_range['end']})
+    print("make_time_range_df debug: ", debug)
+    return pd.DataFrame({ 'start_time': time_range['start'], 'end_time': time_range['end']})
 
 
 @inject.step()
@@ -97,7 +92,7 @@ def prune_unused_trips_everywhere(trips, stop_times, frequencies, attributions):
 
     # prune unused trips from attributions
 
-def remove_frequencies_with_no_trips_in_range(unwrapped_frequencies_with_range_df, trips, frequencies):
+def remove_frequencies_with_no_trips_in_range(unwrapped_frequencies_with_range_df, trips):
     # Effects:
     #   - Remove entry from frequencies.txt if no trips in range
     #   - Remove trip from trips.txt if trip_id not in any range in frequencies
@@ -119,23 +114,29 @@ def remove_frequencies_with_no_trips_in_range(unwrapped_frequencies_with_range_d
     pipeline.replace_table("trips", trips_filtered_df)
 
 def get_long_form_unwrapped_frequencies_inrange_df(unwrapped_repeating_trips):
-    time_ranges = config.setting('time_ranges')
-    time_ranges_df = make_time_ranges_df(time_ranges) \
-        .rename(columns={ 'start_time': 'range_start', 'end_time': 'range_end' })
     
-    # create long-form dataframe with row for each (trip_id, trip_order, time_range)
-    range_index_array = time_ranges_df.index.array
+    time_range = utilityconfig.get_current_time_range()
+
+    # time_range_df = make_time_range_df() \
+    #     .rename(columns={ 'start_time': 'range_start', 'end_time': 'range_end' })
     
-    unwrapped_repeating_trips['range_index'] = None
-    unwrapped_repeating_trips['range_index'] = unwrapped_repeating_trips['range_index'].apply(lambda x: np.array(range_index_array))
+    # # create long-form dataframe with row for each (trip_id, trip_order, time_range)
+    # range_index_array = time_ranges_df.index.array
+    
+    # unwrapped_repeating_trips['range_index'] = None
+    # unwrapped_repeating_trips['range_index'] = unwrapped_repeating_trips['range_index'].apply(lambda x: np.array(range_index_array))
 
-    unwrapped_repeating_trips = unwrapped_repeating_trips.explode('range_index')
+    # unwrapped_repeating_trips = unwrapped_repeating_trips.explode('range_index')
 
-    # HACK I'm not sure why explode is producing duplicates here (1 row explodes to 64 rows instead of 2), but we can remove them here
-    unwrapped_repeating_trips = unwrapped_repeating_trips.drop_duplicates()
+    # # HACK I'm not sure why explode is producing duplicates here (1 row explodes to 64 rows instead of 2), but we can remove them here
+    # unwrapped_repeating_trips = unwrapped_repeating_trips.drop_duplicates()
 
     # determine if in ranges
-    unwrapped_frequencies_with_ranges_df = unwrapped_repeating_trips.merge(time_ranges_df, left_on='range_index', right_index=True)
+    # unwrapped_frequencies_with_ranges_df = unwrapped_repeating_trips.merge(time_ranges_df, left_on='range_index', right_index=True)
+
+    unwrapped_repeating_trips['range_start'] = time_range['start']
+    unwrapped_repeating_trips['range_end'] = time_range['end']
+
     kwargs = {'in_range' : lambda x: time_range_in_range( \
         x['trip_start'].transform(seconds_since_zero), \
         x['trip_end'].transform(seconds_since_zero), \
@@ -143,10 +144,10 @@ def get_long_form_unwrapped_frequencies_inrange_df(unwrapped_repeating_trips):
         x['range_end'].transform(seconds_since_zero)) \
     }
 
-    return unwrapped_frequencies_with_ranges_df.assign(**kwargs)
+    return unwrapped_repeating_trips.assign(**kwargs)
 
 @inject.step()
-def filter_repeating_trips_by_time(trips, unwrapped_repeating_trips, frequencies, stop_times):
+def filter_repeating_trips_by_time(trips, unwrapped_repeating_trips):
     # edit start_time and end_time of frequencies partially in range (at least one but not all trips occur in range)
     # edit stop_times for trip if start_time has changed
 
@@ -155,6 +156,7 @@ def filter_repeating_trips_by_time(trips, unwrapped_repeating_trips, frequencies
         return
 
     unwrapped_long = get_long_form_unwrapped_frequencies_inrange_df(unwrapped_repeating_trips)
+    # print('Annie F 05-04-2020 unwrapped_long: %s', unwrapped_long)
 
     # trips_in_range = unwrapped_long.groupby(['frequency_start', 'trip_id', 'trip_order'])['in_range'] \
     #     .any() \
@@ -183,7 +185,11 @@ def filter_repeating_trips_by_time(trips, unwrapped_repeating_trips, frequencies
     unwrapped_grouped_last_trip = unwrapped_grouped['trip_order'].max().rename('last_trip_order')
 
     unwrapped_in_range_only_grouped = unwrapped_long[unwrapped_long['in_range'] == True].groupby(['frequency_start', 'trip_id'])
+
+    # TODO: handle if unwrapped_in_range_only_grouped is empty here (all frequencies out of range), causes error
+
     unwrapped_grouped_last_trip_in_range = unwrapped_in_range_only_grouped.apply(lambda g: g[g['trip_order'] == g['trip_order'].max()])
+    # print('Annie F 05-04-2020 unwrapped_grouped_last_trip_in_range: %s', unwrapped_grouped_last_trip_in_range)
     unwrapped_grouped_last_trip_in_range = unwrapped_grouped_last_trip_in_range[['frequency_start', 'trip_id', 'trip_order', 'trip_end']]
     unwrapped_grouped_last_trip_in_range = unwrapped_grouped_last_trip_in_range \
         .rename(columns={ 'trip_order': 'last_trip_order_in_range', 'trip_end': 'last_trip_end_in_range' }) \
@@ -285,52 +291,40 @@ def filter_repeating_trips_by_time(trips, unwrapped_repeating_trips, frequencies
     ]
     filtered_frequencies_df = filtered_frequencies_df.drop_duplicates()
 
-
     pipeline.replace_table("trips", trips_filtered_df.set_index('trip_id'))
     pipeline.replace_table("frequencies", filtered_frequencies_df)
 
 
-def get_inrange_df(df, start_col, end_col):
-    # returns df with df.index, and an "inrange_{start}_{end}"" column
-    # for each timerange
+def get_inrange(df, start_col, end_col):
+    # returns df with df.index, and an "inrange" column
 
-    time_ranges = config.setting('time_ranges')
+    time_range = utilityconfig.get_current_time_range()
 
     df_bounds = df[[start_col, end_col]]
 
-    # is trip in any time range
-    for time_range in time_ranges:
-        start = time_range['start']
-        end = time_range['end']
+    start = time_range['start']
+    end = time_range['end']
 
-        time_range_key = 'inrange_' + start + '_' + end
+    kwargs = {'inrange' : lambda x: time_range_in_range( \
+        df_bounds[start_col].transform(seconds_since_zero), \
+        df_bounds[end_col].transform(seconds_since_zero), \
+        seconds_since_zero(start), \
+        seconds_since_zero(end) \
+    )}
+    df_bounds = df_bounds.assign(**kwargs)
 
-        kwargs = {time_range_key : lambda x: time_range_in_range( \
-            df_bounds[start_col].transform(seconds_since_zero), \
-            df_bounds[end_col].transform(seconds_since_zero), \
-            seconds_since_zero(start), \
-            seconds_since_zero(end) \
-        )}
-        df_bounds = df_bounds.assign(**kwargs)
+    inrange = df_bounds['inrange']
 
-    inrange_df = df_bounds \
-        .drop(start_col, axis=1) \
-        .drop(end_col, axis=1)
-
-    return inrange_df
+    return inrange
     
 
 @inject.step()
-def filter_single_trips_by_time(trips_extended, trips, frequencies, stop_times):
+def filter_single_trips_by_time(trips_extended, trips):
     # filters trips by time ranges provided in config
     # trips will only be kept if they start and end within the time range
-    # TODO DON'T remove trips in frequencies.txt! stop_times for those trips are irrelevant
-
-    time_ranges = config.setting('time_ranges')
 
     # add range information
-    trips_extended['inrange'] = get_inrange_df(trips_extended, 'start_time', 'end_time') \
-        .any(axis=1)
+    trips_extended['inrange'] = get_inrange(trips_extended, 'start_time', 'end_time')
 
     # filter trips and write to table
     trips_filtered_df = trips_extended[ \
@@ -340,7 +334,7 @@ def filter_single_trips_by_time(trips_extended, trips, frequencies, stop_times):
     pipeline.replace_table("trips", trips_filtered_df[trips_columns])
 
 @inject.step()
-def calculate_average_headways(trips_extended, stop_times, unwrapped_repeating_trips, agency, routes):
+def calculate_average_headways(trips_extended, unwrapped_repeating_trips, agency, routes):
     # For each route, and each specified time period, comma separated values, LF/CR for each new route/time period combo:
     #   Agency ID
     #   Agency Name
@@ -352,13 +346,10 @@ def calculate_average_headways(trips_extended, stop_times, unwrapped_repeating_t
     #   Route Frequency [for specified time period]
     #   Trip Start Time, Trip Start Time, Trip Start Time, … [for each trip that starts during specified time period(s)]
 
-    time_ranges = config.setting('time_ranges')
-
     trips_extended = trips_extended.reset_index()
 
     frequency_trip_ids = unwrapped_repeating_trips['trip_id']
 
-    stop_times_df = stop_times.to_frame()
     single_trip_starts = trips_extended[['trip_id', 'start_time']]
     
     # remove stop_times for trips in frequencies as they should be ignored
@@ -405,9 +396,11 @@ def calculate_average_headways(trips_extended, stop_times, unwrapped_repeating_t
     route_avg_headway_data = route_avg_headway_data.merge(agency_info.to_frame(), on='agency_id')
 
     route_avg_headway_data['date'] = config.setting('date')
-    # TODO: update to support multiple time ranges
-    route_avg_headway_data['start_time'] = time_ranges[0]['start']
-    route_avg_headway_data['end_time'] = time_ranges[0]['end']
+
+    time_range = utilityconfig.get_current_time_range()
+
+    route_avg_headway_data['start_time'] = time_range['start']
+    route_avg_headway_data['end_time'] = time_range['end']
 
     route_avg_headway_data = route_avg_headway_data.reset_index()
 

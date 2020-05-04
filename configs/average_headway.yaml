@@ -15,6 +15,7 @@
 #
 
 gtfs_files:
+  - 'good_feed.zip'
 
 # Date for which average headways will be calculated
 #   - Format: 'YYYYMMDD'
@@ -24,7 +25,7 @@ gtfs_files:
 #     date: '20091102'
 #
 
-date:
+date: '20091102'
 
 # Time range to average headways over (at this time only one range may be provided)
 #   - Format: 'HH:MM:SS'
@@ -37,8 +38,8 @@ date:
 #
 
 time_ranges:
-  - start:
-    end:
+  - start: '06:00:00'
+    end: '09:00:00'
 
 
 # -----------------------------------------------
