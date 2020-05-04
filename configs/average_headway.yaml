@@ -4,15 +4,17 @@
 # ---- USER INPUT PARAMETERS ----
 # -------------------------------
 
-# GTFS File name (at this time only one feed may be provided)
+# GTFS File names
 #   - Name should include extension (i.e. "good_feed.zip")
-#   - IMPORTANT: This feed needs to be in the "data/" directory
+#   - IMPORTANT: These feeds need to be in the "data/" directory
 #   - Example: 
 #
-#     gtfs_filename: good_feed.zip
+#     gtfs_files: 
+#       - good_feed.zip
+#       - another_good_feed.zip
 #
 
-gtfs_filename:
+gtfs_files:
 
 # Date for which average headways will be calculated
 #   - Format: 'YYYYMMDD'

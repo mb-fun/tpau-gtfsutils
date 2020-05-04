@@ -5,6 +5,7 @@ call conda activate gtfsutils
 
 rem #new install
 pip install activitysim
+pip install pyyaml
 
 CALL conda deactivate
 

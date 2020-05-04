@@ -8,6 +8,7 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import config
 from src.core.utilityconfig import utilityconfig
+from src.core.utilityoutput import utilityoutput 
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,8 @@ def filter_trips_by_date(trips_extended, trips, calendar_dates):
 
     # filter trips and write to table
     trips_df = trips.to_frame()
-    trips_columns = trips_df.columns
+    trips_columns = trips_df.columns.to_list()
+
 
     date_in_range = (trips_extended['start_date'] <= date) & (date <= trips_extended['end_date'])
     dow_in_service = trips_extended[dow] == 1
@@ -112,6 +114,7 @@ def remove_frequencies_with_no_trips_in_range(unwrapped_frequencies_with_range_d
 
     trips_df = trips.to_frame().reset_index()
     trips_filtered_df = trips_df[~trips_df['trip_id'].isin(trips_not_in_any_range_series.index.to_series())]
+    trips_filtered_df = trips_filtered_df.set_index('trip_id')
     
     pipeline.replace_table("trips", trips_filtered_df)
 
@@ -283,7 +286,7 @@ def filter_repeating_trips_by_time(trips, unwrapped_repeating_trips, frequencies
     filtered_frequencies_df = filtered_frequencies_df.drop_duplicates()
 
 
-    pipeline.replace_table("trips", trips_filtered_df)
+    pipeline.replace_table("trips", trips_filtered_df.set_index('trip_id'))
     pipeline.replace_table("frequencies", filtered_frequencies_df)
 
 
@@ -332,12 +335,12 @@ def filter_single_trips_by_time(trips_extended, trips, frequencies, stop_times):
     # filter trips and write to table
     trips_filtered_df = trips_extended[ \
         (trips_extended['inrange'] == True) | trips_extended['is_repeating'] == True]
-    trips_columns = trips.to_frame().columns
+    trips_columns = trips.to_frame().columns.to_list()
 
     pipeline.replace_table("trips", trips_filtered_df[trips_columns])
 
 @inject.step()
-def calculate_average_headways(trips_extended, stop_times, unwrapped_repeating_trips, agency, routes, output_dir):
+def calculate_average_headways(trips_extended, stop_times, unwrapped_repeating_trips, agency, routes):
     # For each route, and each specified time period, comma separated values, LF/CR for each new route/time period combo:
     #   Agency ID
     #   Agency Name
@@ -408,9 +411,7 @@ def calculate_average_headways(trips_extended, stop_times, unwrapped_repeating_t
 
     route_avg_headway_data = route_avg_headway_data.reset_index()
 
-    avg_headways_fname = os.path.join(output_dir, 'average_headways.csv')
-    route_avg_headway_data.to_csv(avg_headways_fname, index=False)
-
+    utilityoutput.write_or_append_to_output_csv(route_avg_headway_data, 'average_headways.csv')
 
 def dow_from_date(date):
     # input: Numerical date in YYYYMMDD format

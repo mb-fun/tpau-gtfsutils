@@ -11,12 +11,14 @@ from __future__ import print_function
 #     warnings.filterwarnings('ignore', category=FutureWarning, module='pandas')
 
 import logging
-import sys
+import os
 import argparse
 import getopt
+import yaml
 
 from src import abm
 from src.core.utilityconfig import utilityconfig
+from src.core.utilityoutput import utilityoutput
 
 from activitysim.core import tracing
 from activitysim.core import config
@@ -35,6 +37,7 @@ def process_args():
     
     args = parser.parse_args()
     utilityconfig.set_utility(args.utility)
+    utilityoutput.initialize(args.utility)
 
     # activitysim process args
     config.handle_standard_args(parser)
@@ -59,10 +62,13 @@ def run():
     if resume_after:
         print("resume_after", resume_after)
 
-    pipeline.run(models=setting('models'), resume_after=resume_after)
+    config_path = os.path.join(config.configs_dir(), utilityconfig.config_file())
+    config_yaml = yaml.load(open(config_path))
 
-    # tables will no longer be available after pipeline is closed
-    pipeline.close_pipeline()
+    for gtfs_file in config_yaml['gtfs_files']:
+        utilityconfig.set_current_feed(gtfs_file)
+        pipeline.run(models=setting('models'), resume_after=resume_after)
+        pipeline.close_pipeline()
 
 
 if __name__ == '__main__':

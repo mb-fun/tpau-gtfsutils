@@ -2,6 +2,7 @@ import logging
 from activitysim.core import inject
 from activitysim.core import config
 from src.core.gtfsprocessor import GTFSProcessor
+from src.core.utilityconfig import utilityconfig
 
 logger = logging.getLogger(__name__)
 
@@ -10,8 +11,8 @@ gtfs_processor = None
 @inject.step()
 def initialize_gtfs_tables():
     global gtfs_processor
-    gtfs_filename = config.setting('gtfs_filename')
-    gtfs_processor = GTFSProcessor(gtfs_filename)
+    gtfs_file = utilityconfig.get_current_feed()
+    gtfs_processor = GTFSProcessor(gtfs_file)
     gtfs_processor.initialize_gtfs_feed()
 
 @inject.step()
