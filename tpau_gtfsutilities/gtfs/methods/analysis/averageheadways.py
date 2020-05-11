@@ -56,13 +56,14 @@ def calculate_average_headways(date, time_range):
     route_avg_headway_secs = trip_start_times \
         .groupby(['route_id', 'direction_id'])['delta_seconds'].mean() \
         .fillna(0) \
-        .rename('average_headway_secs')
+        .transform(lambda x: np.round(x / 60, decimals=3)) \
+        .rename('average_headway_minutes')
 
     route_trip_starts_list = trip_start_times.groupby(['route_id', 'direction_id'])['start_time'].apply(list) \
         .rename('trip_start_times')
     route_avg_headway_data = pd.merge(route_avg_headway_secs, route_trip_starts_list, left_index=True, right_index=True)
 
-    route_avg_headway_data = route_avg_headway_data[['trip_start_times', 'average_headway_secs']]
+    route_avg_headway_data = route_avg_headway_data[['trip_start_times', 'average_headway_minutes']]
     route_avg_headway_data = route_avg_headway_data.reset_index()
     route_info = gtfs.get_table('routes')[['agency_id', 'route_long_name']]
     agency_info = gtfs.get_table('agency')['agency_name']
