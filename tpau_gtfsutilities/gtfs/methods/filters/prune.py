@@ -1,4 +1,6 @@
-def prune_unused_trips_everywhere(gtfs):
+from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
+
+def prune_unused_trips_everywhere():
     # remove trips not in trips table from:
     #   stop_times
     #   frequencies

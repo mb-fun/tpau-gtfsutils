@@ -39,7 +39,7 @@ class _GTFSSingleton:
         return self._tables[tablename]
 
     def get_columns(self, tablename, index=True):
-        columns = self._gtfsreader.contents[tablename]
+        columns = self._gtfsreader.contents.get(tablename).copy()
         if (not index) and (tablename in table_indeces.keys()):
             columns.remove(table_indeces[tablename])
         return columns

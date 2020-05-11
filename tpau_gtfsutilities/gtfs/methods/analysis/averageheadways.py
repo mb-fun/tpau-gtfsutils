@@ -1,11 +1,13 @@
 import pandas as pd
 import numpy as np
 
+from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
 from tpau_gtfsutilities.config.utilityoutput import utilityoutput
 from tpau_gtfsutilities.gtfs.methods.helpers import triphelpers
 
-# def calculate_average_headways(trips_extended, unwrapped_repeating_trips, agency, routes):
-def calculate_average_headways(gtfs):
+from tpau_gtfsutilities.helpers.datetimehelpers import seconds_since_zero
+
+def calculate_average_headways(date, time_range):
     # For each route, and each specified time period, comma separated values, LF/CR for each new route/time period combo:
     #   Agency ID
     #   Agency Name
@@ -67,9 +69,7 @@ def calculate_average_headways(gtfs):
     route_avg_headway_data = route_avg_headway_data.merge(route_info, on='route_id')
     route_avg_headway_data = route_avg_headway_data.merge(agency_info.to_frame(), on='agency_id')
 
-    route_avg_headway_data['date'] = config.setting('date')
-
-    time_range = utilityconfig.get_current_time_range()
+    route_avg_headway_data['date'] = date
 
     route_avg_headway_data['start_time'] = time_range['start']
     route_avg_headway_data['end_time'] = time_range['end']

@@ -1,4 +1,5 @@
 from tpau_gtfsutilities.gtfs.methods.helpers import triphelpers
+from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
 
 from tpau_gtfsutilities.helpers.datetimehelpers import seconds_since_zero
 
@@ -19,12 +20,11 @@ def get_long_form_unwrapped_frequencies_inrange_df(unwrapped_repeating_trips, ti
 
     return unwrapped_repeating_trips.assign(**kwargs)
 
-# def filter_repeating_trips_by_time(trips, unwrapped_repeating_trips):
-def filter_repeating_trips_by_time(gtfs, time_range):
+def filter_repeating_trips_by_time(time_range):
     # edit start_time and end_time of frequencies partially in range (at least one but not all trips occur in range)
     # edit stop_times for trip if start_time has changed
 
-    unwrapped_repeating_trips = triphelpers.get_unwrapped_repeating_trips(gtfs)
+    unwrapped_repeating_trips = triphelpers.get_unwrapped_repeating_trips()
 
     # do nothing if no repeating trips
     if (unwrapped_repeating_trips.empty):
@@ -57,7 +57,6 @@ def filter_repeating_trips_by_time(gtfs, time_range):
     # TODO: handle if unwrapped_in_range_only_grouped is empty here (all frequencies out of range), causes error
 
     unwrapped_grouped_last_trip_in_range = unwrapped_in_range_only_grouped.apply(lambda g: g[g['trip_order'] == g['trip_order'].max()])
-    # print('Annie F 05-04-2020 unwrapped_grouped_last_trip_in_range: %s', unwrapped_grouped_last_trip_in_range)
     unwrapped_grouped_last_trip_in_range = unwrapped_grouped_last_trip_in_range[['frequency_start', 'trip_id', 'trip_order', 'trip_end']]
     unwrapped_grouped_last_trip_in_range = unwrapped_grouped_last_trip_in_range \
         .rename(columns={ 'trip_order': 'last_trip_order_in_range', 'trip_end': 'last_trip_end_in_range' }) \
@@ -148,19 +147,12 @@ def filter_repeating_trips_by_time(gtfs, time_range):
     unwrapped_long = unwrapped_long \
         .reset_index(drop=True) \
         .rename(columns={ 'new_frequency_start': 'start_time', 'frequency_end': 'end_time' })
-    filtered_frequencies_df = unwrapped_long[ \
-        [ \
-            'trip_id', \
-            'start_time', \
-            'end_time', \
-            'headway_secs', \
-            # 'exact_times' \
-        ] \
-    ]
+    filtered_frequencies_df = unwrapped_long[gtfs.get_columns('frequencies')]
     filtered_frequencies_df = filtered_frequencies_df.drop_duplicates()
 
-    pipeline.replace_table("trips", trips_filtered_df.set_index('trip_id'))
-    pipeline.replace_table("frequencies", filtered_frequencies_df)
+
+    gtfs.update_table('trips', trips_filtered_df.set_index('trip_id'))
+    gtfs.update_table('frequencies', filtered_frequencies_df)
 
 
 def get_inrange(df, start_col, end_col, time_range):
@@ -184,12 +176,11 @@ def get_inrange(df, start_col, end_col, time_range):
     return inrange
     
 
-# def filter_single_trips_by_time(trips_extended, trips):
-def filter_single_trips_by_time(gtfs, timerange):
+def filter_single_trips_by_time(timerange):
     # filters trips by time ranges provided in config
     # trips will only be kept if they start and end within the time range
 
-    trips_extended = triphelpers.get_trips_extended(gtfs)
+    trips_extended = triphelpers.get_trips_extended()
 
     # add range information
     trips_extended['inrange'] = get_inrange(trips_extended, 'start_time', 'end_time', timerange)
