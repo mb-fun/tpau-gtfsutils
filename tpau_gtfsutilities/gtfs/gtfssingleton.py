@@ -17,6 +17,7 @@ table_indeces = { \
 class _GTFSSingleton:
     _gtfsreader = None
     _tables = {} # collection of GTFS dataframes
+    _original_tables = {} # collection of GTFS dataframes as inputted
 
     def load_feed(self, filename):
         self._gtfsreader = GTFSReader(filename)
@@ -30,13 +31,18 @@ class _GTFSSingleton:
             if (tablename in table_indeces.keys()):
                 df = df.set_index(table_indeces[tablename])
             self._tables[tablename] = df
+            self._original_tables[tablename] = df.copy()
 
-    def get_table(self, tablename, index=True):
+    def get_table(self, tablename, index=True, original=False):
         if tablename not in self._tables.keys():
             return None
+        if original:
+            tabledict = self._original_tables
+        else:
+            tabledict = self._tables
         if not index:
-            return self._tables[tablename].reset_index()
-        return self._tables[tablename]
+            return tabledict[tablename].reset_index()
+        return tabledict[tablename]
 
     def get_columns(self, tablename, index=True):
         columns = self._gtfsreader.contents.get(tablename).copy()
