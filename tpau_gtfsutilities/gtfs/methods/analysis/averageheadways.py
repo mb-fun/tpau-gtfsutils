@@ -53,7 +53,11 @@ def calculate_average_headways(date, time_range):
     # See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
     trip_start_times['delta_seconds'][mask] = np.nan # set first trip delta
 
-    route_avg_headway_secs = trip_start_times \
+    route_direction_pairs = gtfs.get_table('trips', original=True)[['route_id', 'direction_id']] \
+        .drop_duplicates() \
+        .set_index(['route_id', 'direction_id'])
+
+    route_avg_headway_minutes = trip_start_times \
         .groupby(['route_id', 'direction_id'])['delta_seconds'].mean() \
         .fillna(0) \
         .transform(lambda x: np.round(x / 60, decimals=3)) \
@@ -61,7 +65,14 @@ def calculate_average_headways(date, time_range):
 
     route_trip_starts_list = trip_start_times.groupby(['route_id', 'direction_id'])['start_time'].apply(list) \
         .rename('trip_start_times')
-    route_avg_headway_data = pd.merge(route_avg_headway_secs, route_trip_starts_list, left_index=True, right_index=True)
+
+    route_direction_pairs['average_headway_minutes'] = route_avg_headway_minutes \
+        .fillna(0)
+    route_avg_headway_data = route_direction_pairs.merge(route_trip_starts_list, how='left', left_index=True, right_index=True)
+
+    # fill empty trip start times with empty list
+    route_avg_headway_data['trip_start_times'] = route_avg_headway_data['trip_start_times'].apply(lambda d: d if isinstance(d, list) else [])
+
 
     route_avg_headway_data = route_avg_headway_data[['trip_start_times', 'average_headway_minutes']]
     route_avg_headway_data = route_avg_headway_data.reset_index()
@@ -72,8 +83,8 @@ def calculate_average_headways(date, time_range):
 
     route_avg_headway_data['date'] = date
 
-    route_avg_headway_data['start_time'] = time_range['start']
-    route_avg_headway_data['end_time'] = time_range['end']
+    route_avg_headway_data['start_time'] = time_range['start'] if time_range else ''
+    route_avg_headway_data['end_time'] = time_range['end'] if time_range else ''
 
     route_avg_headway_data = route_avg_headway_data.reset_index()
 
