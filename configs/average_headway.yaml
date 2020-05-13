@@ -9,13 +9,12 @@
 #   - IMPORTANT: These feeds need to be in the "data/" directory
 #   - Example: 
 #
-#     gtfs_files: 
+#     gtfs_feeds: 
 #       - good_feed.zip
 #       - another_good_feed.zip
 #
 
-gtfs_files:
-  - 'good_feed.zip'
+gtfs_feeds:
 
 # Date for which average headways will be calculated
 #   - Format: 'YYYYMMDD'
@@ -25,7 +24,7 @@ gtfs_files:
 #     date: '20091102'
 #
 
-date: '20091102'
+date:
 
 # Time range to average headways over (at this time only one range may be provided)
 #   - Format: 'HH:MM:SS'
@@ -38,69 +37,3 @@ date: '20091102'
 #
 
 time_ranges:
-  - start: '06:00:00'
-    end: '09:00:00'
-
-
-# -----------------------------------------------
-# ---- UTILITY SETTINGS (DO NOT EDIT BELOW) -----
-# -----------------------------------------------
-
-# Complete list of files (as csvs) listed by http://gtfs.org/reference/static 2020-04-28
-# It's ok for files listed here not to exist in the feed, the goal is 
-# to include all files that may be present and relevant to the analysis tool 
-input_table_list:
-  - tablename: routes
-    filename: routes.csv
-    index_col: route_id
-  - tablename: agency
-    filename: agency.csv
-    index_col: agency_id
-  - tablename: stops
-    filename: stops.csv
-    index_col: stop_id
-  - tablename: routes
-    filename: routes.csv
-    index_col: route_id
-  - tablename: trips
-    filename: trips.csv
-    index_col: trip_id
-  - tablename: stop_times
-    filename: stop_times.csv
-  - tablename: calendar
-    filename: calendar.csv
-    index_col: service_id
-  - tablename: calendar_dates
-    filename: calendar_dates.csv
-  - tablename: fare_attributes
-    filename: fare_attributes.csv
-    index_col: fare_id
-  - tablename: fare_rules
-    filename: fare_rules.csv
-  - tablename: shapes
-    filename: shapes.csv
-    index_col: shape_id
-  - tablename: frequencies
-    filename: frequencies.csv
-  - tablename: transfers
-    filename: transfers.csv
-  - tablename: pathways
-    filename: pathways.csv
-  - tablename: levels
-    filename: levels.csv
-  - tablename: translations
-    filename: translations.csv
-  - tablename: feed_info
-    filename: feed_info.csv
-  - tablename: attributions
-    filename: attributions.csv
-
-# Model pipeline
-models:
-  - initialize_gtfs_tables
-  - filter_trips_by_date
-  - filter_single_trips_by_time
-  - filter_repeating_trips_by_time
-  - prune_unused_trips_everywhere
-  - calculate_average_headways
-  - cleanup_data_dir

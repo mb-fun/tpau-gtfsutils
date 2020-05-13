@@ -1,13 +1,10 @@
-import pandas as pd
 import os
-
-from activitysim.core import config
 
 class _UtilityOutput:
     utility = None
     dir_index = 0
 
-    def initialize(self, utility):
+    def initialize_utility(self, utility):
         # utiltiy is one of:
         #   average_headways
 
@@ -20,8 +17,9 @@ class _UtilityOutput:
         os.mkdir(self.get_output_dir())
 
     def get_output_dir(self):
+        parentdir = 'output'
         dirname = self.utility + '_' + str(self.dir_index) if self.dir_index > 0 else self.utility
-        return os.path.join(config.output_dir(), dirname)
+        return os.path.join(parentdir, dirname)
 
     def write_or_append_to_output_csv(self, df, filename, index=False):
         csvfile = os.path.join(self.get_output_dir(), filename)

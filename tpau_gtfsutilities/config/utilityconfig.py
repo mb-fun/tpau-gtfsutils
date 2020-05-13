@@ -1,3 +1,6 @@
+import yaml
+import os
+
 class _UtilityConfig:
     # simple class for interfacing between abm injectables and main.py
     utility = None
@@ -14,6 +17,16 @@ class _UtilityConfig:
         # config file is always {utilityname}.yaml
         return self.utility + '.yaml'
 
+    def get_settings(self):
+        config_path = os.path.join(self.configs_dir(), self.config_file())
+        return yaml.load(open(config_path), Loader=yaml.BaseLoader)
+
+    def input_dir(self):
+        return 'data'
+    
+    def configs_dir(self):
+        return 'configs'
+
     def set_current_feed(self, feed):
         self.current_feed = feed
 
@@ -25,6 +38,5 @@ class _UtilityConfig:
 
     def get_current_time_range(self):
         return self.current_time_range
-
 
 utilityconfig = _UtilityConfig()
