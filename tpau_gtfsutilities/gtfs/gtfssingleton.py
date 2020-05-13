@@ -35,7 +35,7 @@ class _GTFSSingleton:
 
     def get_table(self, tablename, index=True, original=False):
         if tablename not in self._tables.keys():
-            return None
+            return pd.DataFrame()
         if original:
             tabledict = self._original_tables
         else:

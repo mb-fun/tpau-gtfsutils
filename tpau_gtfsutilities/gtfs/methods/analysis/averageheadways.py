@@ -20,20 +20,58 @@ def calculate_average_headways(date, time_range):
     #   Trip Start Time, Trip Start Time, Trip Start Time, … [for each trip that starts during specified time period(s)]
 
     trips_extended = triphelpers.get_trips_extended().reset_index()
+
+    route_direction_pairs = gtfs.get_table('trips', original=True)[['route_id', 'direction_id']] \
+        .drop_duplicates()
+    route_direction_pairs = route_direction_pairs.set_index(['route_id', 'direction_id'])
+
+    agency_info = gtfs.get_table('agency')['agency_name']
+
+    if 'agency_id' in gtfs.get_columns('routes'):
+        route_info = gtfs.get_table('routes')[['agency_id', 'route_long_name']]
+
+        output = route_direction_pairs.reset_index() \
+            .merge(route_info, how='left', on='route_id') \
+            .set_index(['route_id', 'direction_id'])
+        output = output.reset_index() \
+            .merge(agency_info, how='left', on='agency_id') \
+            .set_index(['route_id', 'direction_id'])
+
+    # No agency id in routes.txt means there is only one agency
+    else:
+        route_info = gtfs.get_table('routes')['route_long_name']
+        output = route_direction_pairs.reset_index() \
+            .merge(route_info.to_frame(), how='left', on='route_id') \
+            .set_index(['route_id', 'direction_id'])
+        
+        output['agency_id'] = agency_info.index.to_series().iloc[0]
+        output['agency_name'] = agency_info.iloc[0]
+
+    output['date'] = date
+    output['start_time'] = time_range['start'] if time_range else ''
+    output['end_time'] = time_range['end'] if time_range else ''
+
+    if trips_extended.empty:
+        output['trip_start_times'] = np.empty((len(output), 0)).tolist()
+        output['average_headway_mintes'] = 0
+
+        utilityoutput.write_or_append_to_output_csv(output, 'average_headways.csv')
+        return
+
     unwrapped_repeating_trips = triphelpers.get_unwrapped_repeating_trips()
 
-    frequency_trip_ids = unwrapped_repeating_trips['trip_id']
+    trip_start_times = trips_extended[['trip_id', 'start_time']]
 
-    single_trip_starts = trips_extended[['trip_id', 'start_time']]
-    
-    # remove stop_times for trips in frequencies as they should be ignored
-    single_trip_starts = single_trip_starts[~single_trip_starts['trip_id'].isin(frequency_trip_ids)]
+    if not unwrapped_repeating_trips.empty:
+        frequency_trip_ids = unwrapped_repeating_trips['trip_id']
 
-    # unwrapped_repeating_trips['trip_id'] = unwrapped_repeating_trips['trip_id'] + '_' + unwrapped_repeating_trips['trip_order'].astype(str)
-    unwrapped_repeating_trips = unwrapped_repeating_trips[['trip_id', 'trip_start']]
-    unwrapped_repeating_trips = unwrapped_repeating_trips.rename(columns={ 'trip_start': 'start_time' })
+        # remove stop_times for trips in frequencies as they should be ignored
+        trip_start_times = trip_start_times[~trip_start_times['trip_id'].isin(frequency_trip_ids)]
 
-    trip_start_times = pd.concat([single_trip_starts, unwrapped_repeating_trips])
+        unwrapped_repeating_trips = unwrapped_repeating_trips[['trip_id', 'trip_start']]
+        unwrapped_repeating_trips = unwrapped_repeating_trips.rename(columns={ 'trip_start': 'start_time' })
+
+        trip_start_times = pd.concat([trip_start_times, unwrapped_repeating_trips])
 
     trip_start_times = trip_start_times.merge(trips_extended.reset_index()[['trip_id','route_id', 'direction_id']], how='left', on='trip_id')
     trip_start_times['start_time_seconds'] = trip_start_times['start_time'].transform(seconds_since_zero)
@@ -53,10 +91,6 @@ def calculate_average_headways(date, time_range):
     # See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
     trip_start_times['delta_seconds'][mask] = np.nan # set first trip delta
 
-    route_direction_pairs = gtfs.get_table('trips', original=True)[['route_id', 'direction_id']] \
-        .drop_duplicates() \
-        .set_index(['route_id', 'direction_id'])
-
     route_avg_headway_minutes = trip_start_times \
         .groupby(['route_id', 'direction_id'])['delta_seconds'].mean() \
         .fillna(0) \
@@ -66,27 +100,11 @@ def calculate_average_headways(date, time_range):
     route_trip_starts_list = trip_start_times.groupby(['route_id', 'direction_id'])['start_time'].apply(list) \
         .rename('trip_start_times')
 
-    route_direction_pairs['average_headway_minutes'] = route_avg_headway_minutes \
-        .fillna(0)
-    route_avg_headway_data = route_direction_pairs.merge(route_trip_starts_list, how='left', left_index=True, right_index=True)
+    output['average_headway_minutes'] = route_avg_headway_minutes
+    output = output.merge(route_trip_starts_list, how='left', left_index=True, right_index=True)
 
     # fill empty trip start times with empty list
-    route_avg_headway_data['trip_start_times'] = route_avg_headway_data['trip_start_times'].apply(lambda d: d if isinstance(d, list) else [])
+    output['trip_start_times'] = output['trip_start_times'].apply(lambda d: d if isinstance(d, list) else [])
 
-
-    route_avg_headway_data = route_avg_headway_data[['trip_start_times', 'average_headway_minutes']]
-    route_avg_headway_data = route_avg_headway_data.reset_index()
-    route_info = gtfs.get_table('routes')[['agency_id', 'route_long_name']]
-    agency_info = gtfs.get_table('agency')['agency_name']
-    route_avg_headway_data = route_avg_headway_data.merge(route_info, on='route_id')
-    route_avg_headway_data = route_avg_headway_data.merge(agency_info.to_frame(), on='agency_id')
-
-    route_avg_headway_data['date'] = date
-
-    route_avg_headway_data['start_time'] = time_range['start'] if time_range else ''
-    route_avg_headway_data['end_time'] = time_range['end'] if time_range else ''
-
-    route_avg_headway_data = route_avg_headway_data.reset_index()
-
-    utilityoutput.write_or_append_to_output_csv(route_avg_headway_data, 'average_headways.csv')
+    utilityoutput.write_or_append_to_output_csv(output, 'average_headways.csv', index=True)
 

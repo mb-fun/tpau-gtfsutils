@@ -14,6 +14,7 @@ def filter_trips_by_date(date):
     dow = dow_from_date(date)
     date = int(date)
 
+    # TODO handle missing calendar_dates
     # filter calendar_dates for relevant calendar exceptions
     calendar_dates = gtfs.get_table('calendar_dates')
 

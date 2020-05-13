@@ -30,6 +30,7 @@ def get_trip_bounds():
 
     def min_miliary_arrival_time(grouped):
         trip_id = grouped.name
+        
         grouped_df = grouped.to_frame() \
             .assign(seconds_since_zero = lambda df: df[trip_id].transform(lambda t: seconds_since_zero(t)))
 
@@ -46,7 +47,7 @@ def get_trip_bounds():
 
         return grouped_df.loc[idx_of_max, trip_id]
 
-    grouped_arrival_times = stop_times.groupby('trip_id')['arrival_time']
+    grouped_arrival_times = stop_times[stop_times['arrival_time'].notnull()].groupby('trip_id')['arrival_time']
     
     min_arrival_times = grouped_arrival_times \
         .agg(min_miliary_arrival_time) \
@@ -69,8 +70,9 @@ def get_trips_extended():
     # is_repeating
 
     trips = gtfs.get_table('trips')
+
+    # TODO work for no calendar file
     calendar = gtfs.get_table('calendar')
-    frequencies = gtfs.get_table('frequencies')
 
     calendar_info = calendar[ \
         [
@@ -79,14 +81,16 @@ def get_trips_extended():
         ] \
     ]
 
-    frequencies_trip_ids = frequencies['trip_id']
 
     trips_extended = trips.reset_index().merge(calendar_info, how='left', on='service_id') \
         .set_index('trip_id')
     trips_extended = trips_extended.merge(get_trip_bounds(), left_index=True, right_index=True)
     trips_extended = trips_extended.merge(get_trip_duration_seconds(), left_index=True, right_index=True)
 
-    trips_extended['is_repeating'] = trips_extended.index.to_series().isin(frequencies_trip_ids)
+    frequencies = gtfs.get_table('frequencies')
+    trips_extended['is_repeating'] = \
+        trips_extended.index.to_series().isin(frequencies['trip_id']) if not frequencies.empty \
+        else False
 
     return trips_extended
 
@@ -100,6 +104,9 @@ def get_unwrapped_repeating_trips():
     #   trip_start, trip_end: individual trip bounds
 
     frequencies = gtfs.get_table('frequencies')
+    if frequencies.empty:
+        return pd.DataFrame()
+
     frequencies['num_trips'] = np.floor( \
         (frequencies['end_time'].transform(seconds_since_zero) - frequencies['start_time'].transform(seconds_since_zero)) \
         / frequencies['headway_secs'].transform(int) \
