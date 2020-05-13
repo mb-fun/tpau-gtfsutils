@@ -79,17 +79,13 @@ def calculate_average_headways(date, time_range):
     # calculate deltas
     trip_start_times.sort_values(['route_id', 'direction_id', 'start_time_seconds'], inplace=True)
     trip_start_times['delta_seconds'] = trip_start_times['start_time_seconds'].diff()
-    mask = (trip_start_times['route_id'] != trip_start_times['route_id'].shift(1)) \
+    first_trip_in_route_dir = (trip_start_times['route_id'] != trip_start_times['route_id'].shift(1)) \
         | ( \
             ~np.isnan(trip_start_times['direction_id']) \
             & (trip_start_times['direction_id'] != trip_start_times['direction_id'].shift(1)) \
         )
 
-    # TODO: look into the warning that this produces:
-    # A value is trying to be set on a copy of a slice from a DataFrame
-
-    # See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-    trip_start_times['delta_seconds'][mask] = np.nan # set first trip delta
+    trip_start_times.loc[first_trip_in_route_dir, 'delta_seconds'] = np.nan
 
     route_avg_headway_minutes = trip_start_times \
         .groupby(['route_id', 'direction_id'])['delta_seconds'].mean() \
