@@ -6,7 +6,11 @@ from tpau_gtfsutilities.helpers.datetimehelpers import seconds_since_zero
 def time_range_in_range(start_time_a, end_time_a, start_time_b, end_time_b):
     return (start_time_b <= start_time_a) & (end_time_a <= end_time_b)
 
-def get_long_form_unwrapped_frequencies_inrange_df(unwrapped_repeating_trips, time_range):
+def get_long_form_unwrapped_frequencies_inrange_df(time_range):
+
+    unwrapped_repeating_trips = triphelpers.get_unwrapped_repeating_trips()
+    if unwrapped_repeating_trips.empty:
+        return pd.DataFrame()
     
     unwrapped_repeating_trips['range_start'] = time_range['start']
     unwrapped_repeating_trips['range_end'] = time_range['end']
@@ -24,53 +28,52 @@ def filter_repeating_trips_by_time(time_range):
     # edit start_time and end_time of frequencies partially in range (at least one but not all trips occur in range)
     # edit stop_times for trip if start_time has changed
 
-    unwrapped_repeating_trips = triphelpers.get_unwrapped_repeating_trips()
+    unwrapped_long = get_long_form_unwrapped_frequencies_inrange_df(time_range)
 
     # do nothing if no repeating trips
-    if (unwrapped_repeating_trips.empty):
+    if (unwrapped_long.empty):
         return
 
-    unwrapped_long = get_long_form_unwrapped_frequencies_inrange_df(unwrapped_repeating_trips, time_range)
     unwrapped_grouped = unwrapped_long.groupby(['frequency_start', 'trip_id'])
 
     # Remove frequencies with no trips in range
     any_trip_in_frequency_in_range_series = unwrapped_grouped['in_range'].any() \
-        .rename('any_frequency_trip_in_range')
+            .rename('any_frequency_trip_in_range')
     unwrapped_long = unwrapped_long \
         .merge(any_trip_in_frequency_in_range_series.to_frame().reset_index(), on=['frequency_start', 'trip_id'])
     unwrapped_long = unwrapped_long[unwrapped_long['any_frequency_trip_in_range'] == True] \
         .drop('any_frequency_trip_in_range', axis='columns')
 
     # Remove trip from trips.txt if trip_id not in any range in frequencies
-    trips_not_in_any_range_series = unwrapped_long.groupby(['trip_id'])['in_range'].any()
-    trips_not_in_any_range_series = trips_not_in_any_range_series[trips_not_in_any_range_series == False]
+    trips_not_in_any_range = unwrapped_long.groupby(['trip_id'])['in_range'].any()
+    trips_not_in_any_range = trips_not_in_any_range[trips_not_in_any_range == False]
 
     trips_df = gtfs.get_table('trips', index=False)
-    trips_filtered_df = trips_df[~trips_df['trip_id'].isin(trips_not_in_any_range_series.index.to_series())]
+    trips_filtered_df = trips_df[~trips_df['trip_id'].isin(trips_not_in_any_range.index.to_series())]
     
     # Shorten and/or push back frequencies if needed
     unwrapped_grouped = unwrapped_long.groupby(['frequency_start', 'trip_id'])
-    unwrapped_grouped_last_trip = unwrapped_grouped['trip_order'].max().rename('last_trip_order')
+    last_trip_order = unwrapped_grouped['trip_order'].max().rename('last_trip_order')
 
     unwrapped_in_range_only_grouped = unwrapped_long[unwrapped_long['in_range'] == True].groupby(['frequency_start', 'trip_id'])
 
     # TODO: handle if unwrapped_in_range_only_grouped is empty here (all frequencies out of range), causes error
 
-    unwrapped_grouped_last_trip_in_range = unwrapped_in_range_only_grouped.apply(lambda g: g[g['trip_order'] == g['trip_order'].max()])
-    unwrapped_grouped_last_trip_in_range = unwrapped_grouped_last_trip_in_range[['frequency_start', 'trip_id', 'trip_order', 'trip_end']]
-    unwrapped_grouped_last_trip_in_range = unwrapped_grouped_last_trip_in_range \
+    last_trip_order_in_range = unwrapped_in_range_only_grouped.apply(lambda g: g[g['trip_order'] == g['trip_order'].max()]) \
+        [['frequency_start', 'trip_id', 'trip_order', 'trip_end']]
+    last_trip_order_in_range = last_trip_order_in_range \
         .rename(columns={ 'trip_order': 'last_trip_order_in_range', 'trip_end': 'last_trip_end_in_range' }) \
         .reset_index(drop=True)
     
-    unwrapped_grouped_first_trip_in_range = unwrapped_in_range_only_grouped.apply(lambda g: g[g['trip_order'] == g['trip_order'].min()])
-    unwrapped_grouped_first_trip_in_range = unwrapped_grouped_first_trip_in_range[['frequency_start', 'trip_id', 'trip_order', 'trip_start']]
-    unwrapped_grouped_first_trip_in_range = unwrapped_grouped_first_trip_in_range \
+    first_trip_order_in_range = unwrapped_in_range_only_grouped.apply(lambda g: g[g['trip_order'] == g['trip_order'].min()]) \
+        [['frequency_start', 'trip_id', 'trip_order', 'trip_start']]
+    first_trip_order_in_range = first_trip_order_in_range \
         .rename(columns={ 'trip_order': 'first_trip_order_in_range', 'trip_start': 'first_trip_start_in_range' }) \
         .reset_index(drop=True)
 
-    unwrapped_long = unwrapped_long.merge(unwrapped_grouped_last_trip, left_on=['frequency_start', 'trip_id'], right_on=['frequency_start', 'trip_id'])
-    unwrapped_long = unwrapped_long.merge(unwrapped_grouped_first_trip_in_range, left_on=['frequency_start', 'trip_id'], right_on=['frequency_start', 'trip_id'])
-    unwrapped_long = unwrapped_long.merge(unwrapped_grouped_last_trip_in_range, left_on=['frequency_start', 'trip_id'], right_on=['frequency_start', 'trip_id'])
+    unwrapped_long = unwrapped_long.merge(last_trip_order, left_on=['frequency_start', 'trip_id'], right_on=['frequency_start', 'trip_id'])
+    unwrapped_long = unwrapped_long.merge(first_trip_order_in_range, left_on=['frequency_start', 'trip_id'], right_on=['frequency_start', 'trip_id'])
+    unwrapped_long = unwrapped_long.merge(last_trip_order_in_range, left_on=['frequency_start', 'trip_id'], right_on=['frequency_start', 'trip_id'])
 
     unwrapped_long.loc[unwrapped_long['last_trip_order'] > unwrapped_long['last_trip_order_in_range'], \
         'frequency_end'] = unwrapped_long['last_trip_end_in_range']
@@ -127,7 +130,7 @@ def filter_repeating_trips_by_time(time_range):
                 ) else unwrapped_long['new_trip_order'], \
             axis='columns')
 
-        # if next trip in range
+        # if previous trip in range
         if (unwrapped_long.loc[cur_frequency_start, cur_trip_id, cur_trip_order - 1]['in_range'] == True):
             # update frequency end for all previous trips in frequency
             new_trip_end = unwrapped_long.loc[ \
@@ -147,9 +150,8 @@ def filter_repeating_trips_by_time(time_range):
     unwrapped_long = unwrapped_long \
         .reset_index(drop=True) \
         .rename(columns={ 'new_frequency_start': 'start_time', 'frequency_end': 'end_time' })
-    filtered_frequencies_df = unwrapped_long[gtfs.get_columns('frequencies')]
-    filtered_frequencies_df = filtered_frequencies_df.drop_duplicates()
-
+    filtered_frequencies_df = unwrapped_long[gtfs.get_columns('frequencies')] \
+        .drop_duplicates()
 
     gtfs.update_table('trips', trips_filtered_df.set_index('trip_id'))
     gtfs.update_table('frequencies', filtered_frequencies_df)

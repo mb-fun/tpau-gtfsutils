@@ -12,13 +12,12 @@ def get_trip_duration_seconds():
 
     trip_bounds = get_trip_bounds()
     trip_durations_df = trip_bounds.assign( \
-        duration_seconds=trip_bounds['end_time'].transform(seconds_since_zero) \
-            - trip_bounds['start_time'].transform(seconds_since_zero)
+        duration_seconds = \
+            trip_bounds['end_time'].transform(seconds_since_zero) \
+                - trip_bounds['start_time'].transform(seconds_since_zero) \
     )
 
-    return trip_durations_df \
-        .drop('start_time', axis='columns') \
-        .drop('end_time', axis='columns')
+    return trip_durations_df['duration_seconds']
 
 
 def get_trip_bounds():
@@ -82,15 +81,15 @@ def get_trips_extended():
     ]
 
 
-    trips_extended = trips.reset_index().merge(calendar_info, how='left', on='service_id') \
-        .set_index('trip_id')
+    trips_extended = trips.reset_index() \
+        .merge(calendar_info, how='left', on='service_id').set_index('trip_id')
     trips_extended = trips_extended.merge(get_trip_bounds(), left_index=True, right_index=True)
     trips_extended = trips_extended.merge(get_trip_duration_seconds(), left_index=True, right_index=True)
 
     frequencies = gtfs.get_table('frequencies')
     trips_extended['is_repeating'] = \
-        trips_extended.index.to_series().isin(frequencies['trip_id']) if not frequencies.empty \
-        else False
+        trips_extended.index.to_series().isin(frequencies['trip_id']) \
+        if not frequencies.empty else False
 
     return trips_extended
 
@@ -107,37 +106,28 @@ def get_unwrapped_repeating_trips():
     if frequencies.empty:
         return pd.DataFrame()
 
-    frequencies['num_trips'] = np.floor( \
-        (frequencies['end_time'].transform(seconds_since_zero) - frequencies['start_time'].transform(seconds_since_zero)) \
-        / frequencies['headway_secs'].transform(int) \
-    )
 
-    frequencies = frequencies \
-        .rename(columns={'start_time': 'frequency_start', 'end_time': 'frequency_end' })
+    frequencies.rename(columns={'start_time': 'frequency_start', 'end_time': 'frequency_end' }, inplace=True)
 
     # expand into row per each occurring trip
-    frequencies['num_trips'] = frequencies['num_trips'] \
-        .transform(lambda x: list(range(int(x))))
+    frequencies['trip_order'] = np.floor( \
+            (frequencies['frequency_end'].transform(seconds_since_zero) - frequencies['frequency_start'].transform(seconds_since_zero)) \
+            / frequencies['headway_secs'].transform(int) \
+        ).transform(lambda x: list(range(int(x))))
         
-    unwrapped_frequencies = frequencies \
-        .rename(columns={'num_trips': 'trip_order'}) \
-        .explode('trip_order')
+    unwrapped_frequencies = frequencies.explode('trip_order')
 
     # calculate start time seconds for each trip
-    start_kwargs = { \
+    trip_start_kwargs = { \
         'start_time' : \
             lambda x: \
                 x['frequency_start'].transform(seconds_since_zero) + \
                 x['trip_order'] * x['headway_secs']
     }
-    unwrapped_frequencies = unwrapped_frequencies \
-        .assign(**start_kwargs)
-    unwrapped_frequencies['start_time'] = unwrapped_frequencies['start_time'] \
-        .transform(int)
+    unwrapped_frequencies = unwrapped_frequencies.assign(**trip_start_kwargs)
 
     # calculate end time seconds for each trip
-    unwrapped_frequencies = unwrapped_frequencies \
-        .merge(get_trip_duration_seconds(), left_on='trip_id', right_index=True)
+    unwrapped_frequencies = unwrapped_frequencies.merge(get_trip_duration_seconds(), left_on='trip_id', right_index=True)
 
     unwrapped_frequencies = unwrapped_frequencies.assign( \
             end_time=unwrapped_frequencies['start_time'] + unwrapped_frequencies['duration_seconds'] \
