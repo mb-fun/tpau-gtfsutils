@@ -77,7 +77,7 @@ def calculate_average_headways(date, time_range):
     trip_start_times['start_time_seconds'] = trip_start_times['start_time'].transform(seconds_since_zero)
 
     # calculate deltas
-    trip_start_times.sort_values(['route_id', 'direction_id', 'trip_id', 'start_time_seconds'], inplace=True)
+    trip_start_times.sort_values(['route_id', 'direction_id', 'start_time_seconds'], inplace=True)
     trip_start_times['delta_seconds'] = trip_start_times['start_time_seconds'].diff()
     mask = (trip_start_times['route_id'] != trip_start_times['route_id'].shift(1)) \
         | ( \
