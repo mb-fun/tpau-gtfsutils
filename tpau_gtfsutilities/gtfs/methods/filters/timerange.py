@@ -153,8 +153,8 @@ def filter_repeating_trips_by_time(time_range):
     filtered_frequencies_df = unwrapped_long[gtfs.get_columns('frequencies')] \
         .drop_duplicates()
 
-    gtfs.update_table('trips', trips_filtered_df.set_index('trip_id'))
-    gtfs.update_table('frequencies', filtered_frequencies_df)
+    gtfs.update_table('trips', trips_filtered_df.set_index('trip_id'), allow_column_changes=False)
+    gtfs.update_table('frequencies', filtered_frequencies_df, allow_column_changes=False)
 
 
 def get_inrange(df, start_col, end_col, time_range):
@@ -190,6 +190,5 @@ def filter_single_trips_by_time(timerange):
     # filter trips and write to table
     trips_filtered_df = trips_extended[ \
         (trips_extended['inrange'] == True) | trips_extended['is_repeating'] == True]
-    trips_columns = gtfs.get_columns('trips', index=False)
 
-    gtfs.update_table('trips', trips_filtered_df[trips_columns])
+    gtfs.update_table('trips', trips_filtered_df, allow_column_changes=False)

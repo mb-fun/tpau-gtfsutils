@@ -17,6 +17,9 @@ class GTFSReader:
     def tables(self):
         return self.contents.keys()
 
+    def update_table_columns(self, tablename, columns):
+        self.contents[tablename] = columns
+
     def __capture_feed_tables(self):
         # records the filenames in the feed without extensions
         zipreader = zipfile.ZipFile(self.get_path(), 'r')
@@ -25,8 +28,6 @@ class GTFSReader:
         for filename in filelist:
             tablename = filename.split('.')[0]
             self.contents[tablename] = []
-            # with zipreader.open(filename, 'r') as file:
-            #     csvin = csv.reader(file)
 
     def __capture_feed_table_headers(self):
         # needs to be called after unzip
@@ -34,7 +35,8 @@ class GTFSReader:
             path = os.path.join(utilityconfig.input_dir(), tablename + '.txt')
             with open(path, 'r', newline='') as file:
                 csvin = csv.reader(file)
-                self.contents[tablename] = next(csvin, [])
+                headers = next(csvin, [])
+                self.contents[tablename] = headers
 
     def __validate_zipfile(self):
         filepath = self.get_path()

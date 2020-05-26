@@ -31,7 +31,5 @@ def filter_trips_by_date(date):
     trips_filter = (date_in_range & dow_in_service & ~service_removed_on_date) | service_added_on_date
     trips_filtered_df = trips_extended[trips_filter]
 
-    trips_columns = gtfs.get_columns('trips', index=False)
-
-    gtfs.update_table('trips', trips_filtered_df[trips_columns])
+    gtfs.update_table('trips', trips_filtered_df, allow_column_changes=False)
 

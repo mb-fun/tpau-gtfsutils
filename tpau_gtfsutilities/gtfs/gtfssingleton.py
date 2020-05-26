@@ -50,9 +50,13 @@ class _GTFSSingleton:
             columns.remove(table_indeces[tablename])
         return columns
 
-    def update_table(self, tablename, df):
-        # TODO if column changes update _gtfsreader contents
-        self._tables[tablename] = df
+    def update_table(self, tablename, df, allow_column_changes=True):
+        columns = self.get_columns(tablename)
+        if allow_column_changes:
+            columns = df.columns.tolist()
+            self._gtfsreader.update_table_columns(tablename, columns)
+        
+        self._tables[tablename] = df[columns]
 
     def has_table(self, tablename):
         return (tablename in  self._tables.keys())

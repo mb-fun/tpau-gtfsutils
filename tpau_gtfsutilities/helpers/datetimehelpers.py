@@ -22,13 +22,8 @@ class GTFSDateRange:
             current_date = current_date + datetime.timedelta(days=1)
         return dows
 
-    def includes_range(self, other_daterange, partial=True):
-        # partial indicates whether to return true if only part of the other daterange is included
-        starts_after = self.start.before(other_daterange.start, inclusive=True)
-        ends_before = self.end.after(other_daterange.end, inclusive=True)
-        if partial:
-            starts_after or ends_before
-        return starts_after and ends_before
+    def includes(self, date):
+        return self.start.before(date, inclusive=True) and self.end.after(date, inclusive=True)
 
     def overlap(self, other_daterange):
         max_start = max(self.start.date, other_daterange.start.date)
@@ -61,14 +56,14 @@ class GTFSDate:
     def before(self, date, inclusive=False):
         other = date if isinstance(date, GTFSDate) else GTFSDate(date)
         if inclusive:
-            return self.date <= other.date()
-        return self.date < other.date()
+            return self.date <= other.date
+        return self.date < other.date
     
     def after(self, date, inclusive=False):
         other = date if isinstance(date, GTFSDate) else GTFSDate(date)
         if inclusive:
-            return self.date >= other.date()
-        return self.date > other.date()
+            return self.date >= other.date
+        return self.date > other.date
 
 def to_date(gtfs_datestring):
     gtfs_datestring = str(gtfs_datestring)
