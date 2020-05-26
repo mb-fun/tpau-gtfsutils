@@ -1,17 +1,15 @@
-import datetime
-
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
 from tpau_gtfsutilities.gtfs.methods.helpers.triphelpers import get_trips_extended
-from tpau_gtfsutilities.helpers.datetimehelpers import dow_from_date
+from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDate
 
-# def filter_trips_by_date(trips_extended, trips, calendar_dates):
 def filter_trips_by_date(date):
     # removes trips that do not occur on specified date
+    # TODO consider replacing with filter_calendars_by_date, prune
 
     trips_extended = get_trips_extended()
 
     # filter calendars on date range
-    dow = dow_from_date(date)
+    dow = GTFSDate(date).dow()
     date = int(date)
 
     # TODO handle missing calendar_dates
