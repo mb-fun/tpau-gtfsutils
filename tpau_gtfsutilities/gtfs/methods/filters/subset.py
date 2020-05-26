@@ -1,6 +1,7 @@
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
 from tpau_gtfsutilities.gtfs.methods.filters.daterange import filter_calendars_by_daterange
 from tpau_gtfsutilities.gtfs.methods.filters.daterange import filter_calendar_dates_by_daterange
+from tpau_gtfsutilities.gtfs.methods.filters.prune import prune_unused_calendars
 
 def subset_entire_feed(daterange, timerange=None):
     # - Remove calendars outside of date range
@@ -15,3 +16,4 @@ def subset_entire_feed(daterange, timerange=None):
 
     filter_calendars_by_daterange(daterange)
     filter_calendar_dates_by_daterange(daterange)
+    prune_unused_calendars()

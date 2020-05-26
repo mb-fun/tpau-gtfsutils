@@ -4,14 +4,14 @@ import os
 from .gtfsreader import GTFSReader
 from tpau_gtfsutilities.config.utilityconfig import utilityconfig
 
-table_indeces = { \
-    'agency': 'agency_id', \
-    'stops': 'stop_id', \
-    'routes': 'route_id', \
-    'trips': 'trip_id', \
-    'calendar': 'service_id', \
-    'fare_attributes': 'fare_id', \
-    'shapes': 'shape_id' \
+table_index = { \
+    'agency': ['agency_id'], \
+    'stops': ['stop_id'], \
+    'routes': ['route_id'], \
+    'trips': ['trip_id'], \
+    'calendar': ['service_id'], \
+    'fare_attributes': ['fare_id'], \
+    'shapes': ['shape_id'] \
 }
 
 class _GTFSSingleton:
@@ -28,8 +28,8 @@ class _GTFSSingleton:
         for tablename in self._gtfsreader.contents:
             csv = os.path.join(utilityconfig.input_dir(), tablename + '.csv')
             df = pd.read_csv(csv)
-            if (tablename in table_indeces.keys()):
-                df = df.set_index(table_indeces[tablename])
+            if (tablename in table_index.keys()):
+                df = df.set_index(table_index[tablename])
             self._tables[tablename] = df
             self._original_tables[tablename] = df.copy()
 
@@ -46,16 +46,25 @@ class _GTFSSingleton:
 
     def get_columns(self, tablename, index=True):
         columns = self._gtfsreader.contents.get(tablename).copy()
-        if (not index) and (tablename in table_indeces.keys()):
-            columns.remove(table_indeces[tablename])
+        if (not index) and (tablename in table_index.keys()):
+            columns = [col for col in columns if col not in table_index[tablename]]
         return columns
 
     def update_table(self, tablename, df, allow_column_changes=True):
-        columns = self.get_columns(tablename)
+        columns = self.get_columns(tablename, index=False)
         if allow_column_changes:
-            columns = df.columns.tolist()
-            self._gtfsreader.update_table_columns(tablename, columns)
+            columns_with_index = list(set(df.columns.tolist() + df.index.names))
+            self._gtfsreader.update_table_columns(tablename, columns_with_index)
         
+        # make sure index is correctly set
+        if (tablename in table_index.keys()):
+            index = table_index[tablename].copy()
+            index.sort()
+            df_index = df.index.names.copy()
+            df_index.sort()
+            if not index == df_index:
+                df = df.set_index(index)
+
         self._tables[tablename] = df[columns]
 
     def has_table(self, tablename):
