@@ -65,6 +65,9 @@ class GTFSDate:
             return self.date >= other.date
         return self.date > other.date
 
+    def datestring(self):
+        return self.date.strftime('%Y%m%d')
+
 def to_date(gtfs_datestring):
     gtfs_datestring = str(gtfs_datestring)
     year = gtfs_datestring[:4]
@@ -72,9 +75,6 @@ def to_date(gtfs_datestring):
     day = gtfs_datestring[-2:]
 
     return datetime.date(int(year), int(month), int(day))
-
-def to_gtfs_datestring(date):
-    return date.strftime('%Y%m%d')
 
 def seconds_to_military(seconds_since_zero):
     # returns military time string from "seconds since zero"

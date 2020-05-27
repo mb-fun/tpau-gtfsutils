@@ -28,3 +28,10 @@ def filter_calendar_dates_by_daterange(daterange):
 
     gtfs.update_table('calendar_dates', calendar_dates_filtered, allow_column_changes=False)
 
+def reset_feed_dates(daterange):
+    gtfs_daterange = GTFSDateRange(daterange['start'], daterange['end'])
+    feed_info = gtfs.get_table('feed_info')
+    feed_info['feed_start_date'] = gtfs_daterange.start.datestring()
+    feed_info['feed_end_date'] = gtfs_daterange.end.datestring()
+
+    gtfs.update_table('feed_info', feed_info, allow_column_changes=False)

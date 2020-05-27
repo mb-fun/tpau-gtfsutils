@@ -3,8 +3,8 @@ from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
 from tpau_gtfsutilities.config.utilityconfig import utilityconfig
 
 from tpau_gtfsutilities.gtfs.methods.filters.date import filter_trips_by_date
-from tpau_gtfsutilities.gtfs.methods.filters.timerange import filter_single_trips_by_time
-from tpau_gtfsutilities.gtfs.methods.filters.timerange import filter_repeating_trips_by_time
+from tpau_gtfsutilities.gtfs.methods.filters.timerange import filter_single_trips_by_timerange
+from tpau_gtfsutilities.gtfs.methods.filters.timerange import filter_repeating_trips_by_timerange
 from tpau_gtfsutilities.gtfs.methods.filters.prune import prune_unused_trips
 from tpau_gtfsutilities.gtfs.methods.analysis.averageheadways import calculate_average_headways
 
@@ -26,8 +26,8 @@ class AverageHeadway(GTFSUtility):
                 for timerange in settings['time_ranges']:
                     gtfs.load_feed(feed)
                     filter_trips_by_date(settings['date'])
-                    filter_single_trips_by_time(timerange)
-                    filter_repeating_trips_by_time(timerange)
+                    filter_single_trips_by_timerange(timerange)
+                    filter_repeating_trips_by_timerange(timerange)
                     prune_unused_trips()
                     calculate_average_headways(settings['date'], timerange)
 

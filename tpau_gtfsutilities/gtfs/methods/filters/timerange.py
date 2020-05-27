@@ -24,7 +24,7 @@ def get_long_form_unwrapped_frequencies_inrange_df(time_range):
 
     return unwrapped_repeating_trips.assign(**kwargs)
 
-def filter_repeating_trips_by_time(time_range):
+def filter_repeating_trips_by_timerange(time_range):
     # edit start_time and end_time of frequencies partially in range (at least one but not all trips occur in range)
     # edit stop_times for trip if start_time has changed
 
@@ -178,7 +178,7 @@ def get_inrange(df, start_col, end_col, time_range):
     return inrange
     
 
-def filter_single_trips_by_time(timerange):
+def filter_single_trips_by_timerange(timerange):
     # filters trips by time ranges provided in config
     # trips will only be kept if they start and end within the time range
 
