@@ -68,28 +68,27 @@ def get_trips_extended():
     # duration
     # is_repeating
 
-    trips = gtfs.get_table('trips')
+    trips_extended = gtfs.get_table('trips')
 
-    # TODO work for no calendar file
-    calendar = gtfs.get_table('calendar')
+    if gtfs.has_table('calendar'):
+        calendar = gtfs.get_table('calendar')
+        calendar_info = calendar[ \
+            [
+                'start_date', 'end_date', \
+                'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', \
+            ] \
+        ]
 
-    calendar_info = calendar[ \
-        [
-            'start_date', 'end_date', \
-            'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', \
-        ] \
-    ]
-
-
-    trips_extended = trips.reset_index() \
-        .merge(calendar_info, how='left', on='service_id').set_index('trip_id')
+        trips_extended = trips_extended.reset_index() \
+            .merge(calendar_info, how='left', on='service_id').set_index('trip_id')
+    
     trips_extended = trips_extended.merge(get_trip_bounds(), left_index=True, right_index=True)
     trips_extended = trips_extended.merge(get_trip_duration_seconds(), left_index=True, right_index=True)
 
     frequencies = gtfs.get_table('frequencies')
     trips_extended['is_repeating'] = \
         trips_extended.index.to_series().isin(frequencies['trip_id']) \
-        if not frequencies.empty else False
+        if gtfs.has_table('frequencies') else False
 
     return trips_extended
 
@@ -102,10 +101,10 @@ def get_unwrapped_repeating_trips():
     #   end_time -> frequency_end
     #   trip_start, trip_end: individual trip bounds
 
-    frequencies = gtfs.get_table('frequencies')
-    if frequencies.empty:
+    if not gtfs.has_table('frequencies'):
         return pd.DataFrame()
 
+    frequencies = gtfs.get_table('frequencies')
 
     frequencies.rename(columns={'start_time': 'frequency_start', 'end_time': 'frequency_end' }, inplace=True)
 

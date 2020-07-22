@@ -1,0 +1,2 @@
+class MissingRequiredFileError(Exception):
+    pass

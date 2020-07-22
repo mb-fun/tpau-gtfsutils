@@ -10,15 +10,17 @@ def prune_table_from_table_column(target, source, column, columns={}):
 
     # TODO handle missing optional tables
 
+    if not gtfs.has_table(target): return
+
     target_df = gtfs.get_table(target, index=False)
     source_df = gtfs.get_table(source, index=False)
 
     target_col = column if not columns else columns[target]
     source_col = column if not columns else columns[source]
 
-    if not (target_df.empty):
-        target_pruned = target_df[target_df[target_col].isin(source_df[source_col])]
-        gtfs.update_table(target, target_pruned)
+    target_pruned = target_df[target_df[target_col].isin(source_df[source_col])]
+    gtfs.update_table(target, target_pruned)
+
 
 def prune_unused_trips():
     prune_table_from_table_column('frequencies', 'trips', 'trip_id')
@@ -26,8 +28,12 @@ def prune_unused_trips():
     # prune_table_from_table_column('attributions', 'trips', 'trip_id')
 
 def prune_unused_calendars():
-    prune_table_from_table_column('calendar', 'trips', 'service_id') 
-    prune_table_from_table_column('calendar_dates', 'calendar', 'service_id') 
+    # 'alternate' mode (see http://gtfs.org/reference/static/#calendar_datestxt)
+    if gtfs.has_table('calendar_dates') and not gtfs.has_table('calendar'):
+        prune_table_from_table_column('calendar_dates', 'trips', 'service_id') 
+    else:
+        prune_table_from_table_column('calendar', 'trips', 'service_id') 
+        prune_table_from_table_column('calendar_dates', 'calendar', 'service_id') 
 
 def prune_unused_stops():
     prune_stops_from_stop_times()
@@ -40,12 +46,11 @@ def prune_stops_from_stop_times():
     stops = gtfs.get_table('stops', index=False)
     stop_times = gtfs.get_table('stop_times')
 
-    if not (stops.empty):
-        stops_pruned = stops[ \
-            (stops['stop_id'].isin(stop_times['stop_id'])) \
-                | (stops['stop_id'].isin(stops['parent_station'])) \
-        ]
-        gtfs.update_table('stops', stops_pruned)
+    stops_pruned = stops[ \
+        (stops['stop_id'].isin(stop_times['stop_id'])) \
+            | (stops['stop_id'].isin(stops['parent_station'])) \
+    ]
+    gtfs.update_table('stops', stops_pruned)
 
 def prune_unused_routes():
     prune_table_from_table_column('routes', 'trips', 'route_id')

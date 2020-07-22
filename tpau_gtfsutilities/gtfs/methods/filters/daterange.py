@@ -18,6 +18,8 @@ def filter_calendars_by_daterange(daterange):
     
 
 def filter_calendar_dates_by_daterange(daterange):
+    if not gtfs.has_table('calendar_dates'): return
+
     calendar_dates = gtfs.get_table('calendar_dates')
     filter_daterange = GTFSDateRange(daterange['start'], daterange['end'])
 
@@ -29,8 +31,11 @@ def filter_calendar_dates_by_daterange(daterange):
     gtfs.update_table('calendar_dates', calendar_dates_filtered, allow_column_changes=False)
 
 def reset_feed_dates(daterange):
+    if not gtfs.has_table('feed_info'): return
+
     gtfs_daterange = GTFSDateRange(daterange['start'], daterange['end'])
     feed_info = gtfs.get_table('feed_info')
+
     feed_info['feed_start_date'] = gtfs_daterange.start.datestring()
     feed_info['feed_end_date'] = gtfs_daterange.end.datestring()
 

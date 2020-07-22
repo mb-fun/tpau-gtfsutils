@@ -3,6 +3,8 @@ import os
 
 from .gtfsreader import GTFSReader
 from tpau_gtfsutilities.config.utilityconfig import utilityconfig
+from .properties import REQUIRED_TABLES
+from .gtfserrors import MissingRequiredFileError
 
 table_index = { \
     'agency': ['agency_id'], \
@@ -35,14 +37,20 @@ class _GTFSSingleton:
 
     def get_table(self, tablename, index=True, original=False):
         if tablename not in self._tables.keys():
+            if tablename in REQUIRED_TABLES:
+                raise MissingRequiredFileError(tablename)
             return pd.DataFrame()
         if original:
             tabledict = self._original_tables
         else:
             tabledict = self._tables
+
         if not index:
             return tabledict[tablename].reset_index()
         return tabledict[tablename]
+
+    def has_table(self, tablename):
+        return tablename in self._tables.keys()
 
     def get_columns(self, tablename, index=True):
         columns = self._gtfsreader.contents.get(tablename).copy()
@@ -66,9 +74,6 @@ class _GTFSSingleton:
                 df = df.set_index(index)
 
         self._tables[tablename] = df[columns]
-
-    def has_table(self, tablename):
-        return (tablename in  self._tables.keys())
 
     def is_gtfs_ride(self):
         # This is the only required file in the GTFS-Ride spec (5/4/2020)
