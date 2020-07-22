@@ -14,7 +14,7 @@ def filter_calendars_by_daterange(daterange):
 
     calendar_filtered = calendar[calendar['_overlap'].notnull()]
 
-    gtfs.update_table('calendar', calendar_filtered, allow_column_changes=False)
+    gtfs.update_table('calendar', calendar_filtered)
     
 
 def filter_calendar_dates_by_daterange(daterange):
@@ -28,7 +28,7 @@ def filter_calendar_dates_by_daterange(daterange):
 
     calendar_dates_filtered = calendar_dates[calendar_dates['_inrange']]
 
-    gtfs.update_table('calendar_dates', calendar_dates_filtered, allow_column_changes=False)
+    gtfs.update_table('calendar_dates', calendar_dates_filtered)
 
 def reset_feed_dates(daterange):
     if not gtfs.has_table('feed_info'): return
@@ -39,4 +39,4 @@ def reset_feed_dates(daterange):
     feed_info['feed_start_date'] = gtfs_daterange.start.datestring()
     feed_info['feed_end_date'] = gtfs_daterange.end.datestring()
 
-    gtfs.update_table('feed_info', feed_info, allow_column_changes=False)
+    gtfs.update_table('feed_info', feed_info)

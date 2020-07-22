@@ -36,5 +36,5 @@ def filter_trips_by_date(date):
 
     trips_filtered_df = trips_extended[trips_filter]
 
-    gtfs.update_table('trips', trips_filtered_df, allow_column_changes=False)
+    gtfs.update_table('trips', trips_filtered_df)
 
