@@ -4,12 +4,9 @@ call conda create -n gtfsutils python=3.7
 call conda activate gtfsutils
 
 rem #new install
-pip install activitysim
+pip install pandas
 pip install pyyaml
 
 CALL conda deactivate
-
-rem # update to a new release
-rem # pip install -U activitysim
 
 python setup.py develop
