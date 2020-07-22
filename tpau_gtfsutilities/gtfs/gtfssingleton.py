@@ -3,6 +3,7 @@ import os
 
 from .gtfsreader import GTFSReader
 from tpau_gtfsutilities.config.utilityconfig import utilityconfig
+from tpau_gtfsutilities.config.utilityoutput import utilityoutput
 from .properties import REQUIRED_TABLES
 from .gtfserrors import MissingRequiredFileError
 
@@ -35,6 +36,9 @@ class _GTFSSingleton:
             self._tables[tablename] = df
             self._original_tables[tablename] = df.copy()
 
+    def write_feed(self, feedname):
+        utilityoutput.write_to_zip(self._tables, feedname)
+
     def get_table(self, tablename, index=True, original=False):
         if tablename not in self._tables.keys():
             if tablename in REQUIRED_TABLES:
@@ -58,7 +62,7 @@ class _GTFSSingleton:
             columns = [col for col in columns if col not in table_index[tablename]]
         return columns
 
-    def update_table(self, tablename, df, allow_column_changes=True):
+    def update_table(self, tablename, df, allow_column_changes=False):
         columns = self.get_columns(tablename, index=False)
         if allow_column_changes:
             columns_with_index = list(set(df.columns.tolist() + df.index.names))

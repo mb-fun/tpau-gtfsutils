@@ -14,3 +14,5 @@ class OneDay(GTFSUtility):
             gtfs.load_feed(feed)
             subset_entire_feed(settings['date_range'], settings['time_range'])
             gtfs.close_tables()
+            feed_no_extension = feed[:-4]
+            gtfs.write_feed(feed_no_extension)
