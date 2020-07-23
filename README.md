@@ -1,5 +1,9 @@
 # TPAU GTFS Utilities
 
+### Requirements
+
+- Python 3
+
 ### Installation/Setup (Windows)
 
 - Download repository by running `git clone git@github.com:anniekfifer/tpau-gtfsutils.git` in the CMD tool
