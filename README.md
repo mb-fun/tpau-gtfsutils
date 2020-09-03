@@ -2,15 +2,12 @@
 
 ### Requirements
 
-- Anaconda (https://www.anaconda.com/distribution/#download-section)
+- Anaconda
 
 ### Installation/Setup (Windows)
 
-- Install all requirements listed above
-- Download repository (`git clone git@github.com:anniekfifer/tpau-gtfsutils.git`)
-- Open Anaconda Prompt application
-- In project root directory, run:
-  - `initial-setup.bat`
+- Download repository by running `git clone git@github.com:anniekfifer/tpau-gtfsutils.git` in the CMD tool
+- In the Anaconda Prompt application, run `initial-setup.bat` from the project root directory 
 
 ### Configuring and running a utility
 
@@ -27,7 +24,7 @@
 
 - Edit `config/average_headway.yaml` input parameters to use example values in comments
 - Make sure that `good_feed.zip` (included in repo for testing) is in `data/`
-- In the Anaconda Prompt application run `tpau-utils.bat average_headway`
+- In the Anaconda Prompt application, run `tpau-utils.bat average_headway`
   
 ### Output
 - Application output will go to `output/` directory
