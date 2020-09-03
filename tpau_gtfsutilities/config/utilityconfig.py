@@ -10,6 +10,7 @@ class _UtilityConfig:
     def set_utility(self, utility):
         # utiltiy is one of:
         #   average_headways
+        #   one_day
 
         self.utility = utility
 

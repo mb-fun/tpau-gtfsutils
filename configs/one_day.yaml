@@ -1,4 +1,4 @@
-# config file for Average Headways utility
+# config file for One Day utility
 
 # -------------------------------
 # ---- USER INPUT PARAMETERS ----
@@ -15,32 +15,32 @@
 #
 
 gtfs_feeds:
-  - good_feed.zip
 
-# Date for which average headways will be calculated
-#   - Format: 'YYYYMMDD'
+# Date range to subset feed by
+#   - Date format: 'YYYYMMDD'
 #   - Value should be quoted (single or double)
+#   - For one day, use the same date for start and end
 #   - Example:
 #
-#     date: '20091102'
+#     date_range: 
+#       start: '200201102'
+#       end: '200201107'
 #
 
 date_range: 
-  start: '20121102'
-  end: '20121202'
-  # start: '20091102'
-  # end: '20091202'
+  start:
+  end:
 
-# Time range to average headways over (at this time only one range may be provided)
-#   - Format: 'HH:MM:SS'
+# Time range subset feed by
+#   - Time format: 'HH:MM:SS'
 #   - Value should be quoted (single or double)
 #   - Example:
 # 
-#     time_ranges:
-#       - start: '06:00:00'
+#     time_range:
+#         start: '06:00:00'
 #         end: '09:00:00'
 #
 
-# time_ranges:
-#   - start: '06:00:00'
-#     end: '09:00:00'
+time_range:
+    start:
+    end:

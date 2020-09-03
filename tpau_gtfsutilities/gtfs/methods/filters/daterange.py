@@ -12,9 +12,17 @@ def filter_calendars_by_daterange(daterange):
         filter_daterange.overlap(dr) \
     )
 
-    calendar_filtered = calendar[calendar['_overlap'].notnull()]
+
+    # remove calendar entries that don't overlap DOWs 
+    calendar['_dows_overlap'] = calendar.apply(lambda row: \
+        True in (row[dow] for dow in filter_daterange.days_of_week()),
+        axis=1
+    )
+
+    calendar_filtered = calendar[calendar['_overlap'].notnull() & calendar['_dows_overlap']]
 
     gtfs.update_table('calendar', calendar_filtered)
+    remove_trips_with_nonexistent_calendars()
     
 
 def filter_calendar_dates_by_daterange(daterange):
@@ -29,6 +37,15 @@ def filter_calendar_dates_by_daterange(daterange):
     calendar_dates_filtered = calendar_dates[calendar_dates['_inrange']]
 
     gtfs.update_table('calendar_dates', calendar_dates_filtered)
+    remove_trips_with_nonexistent_calendars()
+
+def remove_trips_with_nonexistent_calendars():
+    calendar = gtfs.get_table('calendar', index=False)
+    trips = gtfs.get_table('trips')
+    
+    trips_filtered = trips[trips['service_id'].isin(calendar['service_id'])]
+
+    gtfs.update_table('trips', trips_filtered)
 
 def reset_feed_dates(daterange):
     if not gtfs.has_table('feed_info'): return

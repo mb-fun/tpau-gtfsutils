@@ -19,6 +19,9 @@
 - To run a utility:
   - Open Anaconda Prompt application
   -  In project root directory, run `tpau-utils.bat` with the appropriate utility name (i.e., `tpau-utils.bat average_headway`)
+    - Utilities:
+      - Average Headway (`average_headway`): Generates csv report of average headways by route
+      - One Day (`one_day`): Produces a subset of the feed within the given date or date range and time with service exceptions removed.
 
 ### Configuring and running example
 

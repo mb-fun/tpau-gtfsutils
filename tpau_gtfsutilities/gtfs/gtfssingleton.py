@@ -37,7 +37,14 @@ class _GTFSSingleton:
             self._original_tables[tablename] = df.copy()
 
     def write_feed(self, feedname):
-        utilityoutput.write_to_zip(self._tables, feedname)
+        unindexed_tables = {}
+        for tablename in self._tables.keys():
+            has_index = tablename in table_index.keys()
+            if has_index:
+                unindexed_tables[tablename] = self._tables[tablename].reset_index()
+            else:
+                unindexed_tables[tablename] = self._tables[tablename]
+        utilityoutput.write_to_zip(unindexed_tables, feedname)
 
     def get_table(self, tablename, index=True, original=False):
         if tablename not in self._tables.keys():
@@ -79,10 +86,20 @@ class _GTFSSingleton:
 
         self._tables[tablename] = df[columns]
 
+    def clear_table(self, tablename):
+        df = self.get_table(tablename)
+        emptied_df = df.iloc[0:0]
+
+        self.update_table(tablename, emptied_df)
+
     def is_gtfs_ride(self):
         # This is the only required file in the GTFS-Ride spec (5/4/2020)
         # https://github.com/ODOT-PTS/GTFS-ride/blob/master/spec/en/reference.md
         return self.has_table('ride_feed_info')
+
+    def only_uses_calendar_dates(self):
+        # Returns true if the feed defines all service using calendar_dates
+        return self.has_table('calendar')
 
     def close_tables(self):
         self._gtfsreader.cleanup_gtfs_files_in_data_dir()
