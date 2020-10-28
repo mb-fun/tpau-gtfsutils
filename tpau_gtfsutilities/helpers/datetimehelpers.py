@@ -35,8 +35,6 @@ class GTFSDateRange:
 
         return GTFSDateRange(max_start, min_end)
 
-
-
 class GTFSDate:
     date = None
 
@@ -67,6 +65,16 @@ class GTFSDate:
 
     def datestring(self):
         return self.date.strftime('%Y%m%d')
+
+    def __eq__(self, other):
+        return self.datestring() == other.datestring()
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def add_days(self, n):
+        self.date = self.date + datetime.timedelta(days=n)
+
 
 def to_date(gtfs_datestring):
     gtfs_datestring = str(gtfs_datestring)

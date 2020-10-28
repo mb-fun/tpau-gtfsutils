@@ -50,6 +50,13 @@ def prune_stops_from_stop_times():
         (stops['stop_id'].isin(stop_times['stop_id'])) \
             | (stops['stop_id'].isin(stops['parent_station'])) \
     ]
+
+    # filter again to remove unused parent stops
+    stops_pruned = stops_pruned[ \
+        (stops_pruned['stop_id'].isin(stop_times['stop_id'])) \
+            | (stops_pruned['stop_id'].isin(stops_pruned['parent_station'])) \
+    ]
+
     gtfs.update_table('stops', stops_pruned)
 
 def prune_unused_routes():

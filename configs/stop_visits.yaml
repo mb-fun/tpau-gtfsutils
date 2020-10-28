@@ -1,0 +1,55 @@
+# config file for Stop Visits utility
+
+# -------------------------------
+# ---- USER INPUT PARAMETERS ----
+# -------------------------------
+
+# GTFS File names
+#   - Name should include extension (i.e. "good_feed.zip")
+#   - IMPORTANT: These feeds need to be in the "data/" directory
+#   - Example: 
+#
+#     gtfs_feeds: 
+#       - good_feed.zip
+#       - another_good_feed.zip
+#
+
+gtfs_feeds:
+  - good_feed.zip
+
+# Polygon TODO
+#   - geojson or shapefile 
+#   - The file must contain only one polygon or multipolygon
+#   - Example:
+#
+#     polygon: polygon.geojson
+
+polygon: stops_filter_geojson.geojson
+
+# Date range to subset feed by
+#   - Date format: 'YYYYMMDD'
+#   - Value should be quoted (single or double)
+#   - Example:
+#
+#     date_range: 
+#       start: '200201102'
+#       end: '200201107'
+#
+
+date_range: 
+  start: '20070602'
+  end: '20070607'
+
+# Time range subset feed by
+#   - Time format: 'HH:MM:SS'
+#   - Value should be quoted (single or double)
+#   - Example:
+# 
+#     time_range:
+#         start: '06:00:00'
+#         end: '09:00:00'
+#
+
+time_range:
+    start: '06:00:00'
+    end: '09:00:00'

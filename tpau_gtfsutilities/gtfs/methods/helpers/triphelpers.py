@@ -96,7 +96,7 @@ def get_trips_extended():
 def get_unwrapped_repeating_trips():
     # returns dataframe with a row for every occurring trip represented by frequencies.txt
     # dataframe returned has frequencies columns with changes/additions:
-    #   trip_order: sequence of trip in frequency
+    #   trip_order: sequence of trip in frequency (starting at 0)
     #   start_time -> frequency_start 
     #   end_time -> frequency_end
     #   trip_start, trip_end: individual trip bounds

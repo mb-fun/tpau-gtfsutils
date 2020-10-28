@@ -5,8 +5,10 @@ call conda activate gtfsutils
 
 rem #new install
 pip install pandas
+pip install geopandas
 pip install pyyaml
-
-CALL conda deactivate
+pip install shapely
 
 python setup.py develop
+
+CALL conda deactivate
