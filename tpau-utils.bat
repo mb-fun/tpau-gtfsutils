@@ -4,6 +4,8 @@ IF "%1" == "" (
     ECHO Utility argument required, please use one of the following:
     ECHO   average_headway
     ECHO   one_day
+    ECHO   stop_visits
+    ECHO   interpolate_stoptimes
     EXIT /b
 )
 

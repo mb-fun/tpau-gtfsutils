@@ -8,6 +8,7 @@ from tpau_gtfsutilities.config.utilityoutput import utilityoutput
 from tpau_gtfsutilities.utilities.averageheadway import AverageHeadway
 from tpau_gtfsutilities.utilities.oneday import OneDay
 from tpau_gtfsutilities.utilities.stopvisits import StopVisits
+from tpau_gtfsutilities.utilities.interpolate_stoptimes import InterpolateStoptimes
 
 def get_utility_runner(utility):
     utilityrunner = None
@@ -17,6 +18,8 @@ def get_utility_runner(utility):
         return OneDay()
     if utility == 'stop_visits':
         return StopVisits()
+    if utility == 'interpolate_stoptimes':
+        return InterpolateStoptimes()
 
 def run():
     parser = argparse.ArgumentParser()
@@ -25,13 +28,13 @@ def run():
         'average_headway', \
         'one_day', \
         'stop_visits', \
+        'interpolate_stoptimes', \
     ]
     utility_help = 'Utility name. Must be one of: ' + '\n'.join(valid_utilities)
     parser.add_argument('-u', '--utility', help=utility_help, required=True, choices=valid_utilities, nargs='?')
     
     args = parser.parse_args()
     utility = args.utility
-
 
     utilityconfig.set_utility(utility)
     utilityoutput.initialize_utility(utility)
