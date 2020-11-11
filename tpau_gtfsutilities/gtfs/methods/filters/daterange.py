@@ -54,6 +54,19 @@ def remove_trips_with_nonexistent_calendars():
 
     gtfs.update_table('trips', trips_filtered)
 
+def filter_board_alight_by_daterange(daterange):
+    if not gtfs.has_table('board_alight'): return
+
+    board_alight = gtfs.get_table('board_alight', index=False)
+    if 'service_date' not in board_alight.columns: return
+
+    filter_daterange = GTFSDateRange(daterange['start'], daterange['end'])
+
+    board_alight['_inrange'] = board_alight.apply(lambda row: filter_daterange.includes(row['service_date']), axis=1)
+    board_alight_filtered = board_alight[board_alight['_inrange']]
+
+    gtfs.update_table('board_alight', board_alight_filtered)
+
 def reset_feed_dates(daterange):
     if not gtfs.has_table('feed_info'): return
 

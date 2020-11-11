@@ -15,7 +15,6 @@
 #
 
 gtfs_feeds:
-  - good_feed.zip
 
 # Polygon TODO
 #   - geojson or shapefile 
@@ -24,7 +23,7 @@ gtfs_feeds:
 #
 #     polygon: polygon.geojson
 
-polygon: stops_filter_geojson.geojson
+polygon:
 
 # Date range to subset feed by
 #   - Date format: 'YYYYMMDD'
@@ -37,8 +36,8 @@ polygon: stops_filter_geojson.geojson
 #
 
 date_range: 
-  start: '20070602'
-  end: '20070607'
+  start:
+  end:
 
 # Time range subset feed by
 #   - Time format: 'HH:MM:SS'
@@ -51,5 +50,5 @@ date_range:
 #
 
 time_range:
-    start: '06:00:00'
-    end: '09:00:00'
+    start:
+    end:

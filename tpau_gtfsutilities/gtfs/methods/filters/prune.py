@@ -25,6 +25,7 @@ def prune_table_from_table_column(target, source, column, columns={}):
 def prune_unused_trips():
     prune_table_from_table_column('frequencies', 'trips', 'trip_id')
     prune_table_from_table_column('stop_times', 'trips', 'trip_id')
+    prune_table_from_table_column('board_alight', 'trips', 'trip_id')
     # prune_table_from_table_column('attributions', 'trips', 'trip_id')
 
 def prune_unused_calendars():
@@ -46,16 +47,21 @@ def prune_stops_from_stop_times():
     stops = gtfs.get_table('stops', index=False)
     stop_times = gtfs.get_table('stop_times')
 
-    stops_pruned = stops[ \
-        (stops['stop_id'].isin(stop_times['stop_id'])) \
-            | (stops['stop_id'].isin(stops['parent_station'])) \
-    ]
+    has_parent_station = 'parent_station' in stops.columns
 
-    # filter again to remove unused parent stops
-    stops_pruned = stops_pruned[ \
-        (stops_pruned['stop_id'].isin(stop_times['stop_id'])) \
-            | (stops_pruned['stop_id'].isin(stops_pruned['parent_station'])) \
-    ]
+    if has_parent_station:
+        stops_pruned = stops[ \
+            (stops['stop_id'].isin(stop_times['stop_id'])) \
+                | (has_parent_station & stops['stop_id'].isin(stops['parent_station'])) \
+        ]
+
+        # filter again to remove unused parent stops
+        stops_pruned = stops_pruned[ \
+            (stops['stop_id'].isin(stop_times['stop_id'])) \
+                | (has_parent_station & stops['stop_id'].isin(stops['parent_station'])) \
+        ]
+    else:
+        stops_pruned = stops[stops['stop_id'].isin(stop_times['stop_id'])]
 
     gtfs.update_table('stops', stops_pruned)
 

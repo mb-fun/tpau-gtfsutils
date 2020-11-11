@@ -26,8 +26,10 @@ class GTFSReader:
         filelist = zipreader.namelist()
 
         for filename in filelist:
-            tablename = filename.split('.')[0]
-            self.contents[tablename] = []
+            hidden = filename.startswith('.')
+            if not hidden:
+                tablename = filename.split('.')[0]
+                self.contents[tablename] = []
 
     def __capture_feed_table_headers(self):
         # needs to be called after unzip
