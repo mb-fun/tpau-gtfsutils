@@ -60,13 +60,15 @@ def get_trip_bounds():
 
 
 def get_trips_extended():
-    # returns trips with calendar and time information
+    # returns trips with agency, calendar and time information
     # start_date, end_date
     # daygroups
     # start_time
     # end_time
     # duration
     # is_repeating
+    # agency id
+    # agency name
 
     trips_extended = gtfs.get_table('trips')
 
@@ -90,7 +92,32 @@ def get_trips_extended():
         trips_extended.index.to_series().isin(frequencies['trip_id']) \
         if gtfs.has_table('frequencies') else False
 
-    return trips_extended
+    # agency information
+    agency = gtfs.get_table('agency')
+    if not gtfs.is_multiagency():
+        agency_row = agency.iloc[0]
+        trips_extended['agency_name'] = agency_row['agency_name']
+        if 'agency_id' in agency.columns:
+            trips_extended['agency_id'] = agency_row['agency_id']
+        else:
+            trips_extended['agency_id'] = ''
+    else:
+        route_agencies = gtfs.get_table('routes')['agency_id']
+        trips_extended = trips_extended.reset_index()
+        trips_extended = trips_extended.merge( \
+            route_agencies,
+            how='left',
+            left_on='route_id',
+            right_index=True
+        )
+        trips_extended = trips_extended.merge( \
+            agency[['agency_id', 'agency_name']],
+            how='left',
+            left_on='agency_id',
+            right_on='agency_id'
+        )
+
+    return trips_extended.set_index('trip_id')
 
 
 def get_unwrapped_repeating_trips():

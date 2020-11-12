@@ -25,7 +25,7 @@ def calculate_average_headways(date, time_range):
         .drop_duplicates()
     route_direction_pairs = route_direction_pairs.set_index(['route_id', 'direction_id'])
 
-    agency_info = gtfs.get_table('agency')['agency_name']
+    agency_info = gtfs.get_table('agency')[['agency_id','agency_name']]
 
     if 'agency_id' in gtfs.get_columns('routes'):
         route_info = gtfs.get_table('routes')[['agency_id', 'route_long_name']]
@@ -44,8 +44,8 @@ def calculate_average_headways(date, time_range):
             .merge(route_info.to_frame(), how='left', on='route_id') \
             .set_index(['route_id', 'direction_id'])
         
-        output['agency_id'] = agency_info.index.to_series().iloc[0]
-        output['agency_name'] = agency_info.iloc[0]
+        output['agency_id'] = agency_info['agency_id'].iloc[0]
+        output['agency_name'] = agency_info['agency_name'].iloc[0]
 
     output['date'] = date
     output['start_time'] = time_range['start'] if time_range else ''

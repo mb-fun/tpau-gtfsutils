@@ -8,7 +8,6 @@ from .properties import REQUIRED_TABLES
 from .gtfserrors import MissingRequiredFileError
 
 table_index = { \
-    'agency': ['agency_id'], \
     'stops': ['stop_id'], \
     'routes': ['route_id'], \
     'trips': ['trip_id'], \
@@ -58,7 +57,7 @@ class _GTFSSingleton:
 
         if not index:
             return tabledict[tablename].reset_index()
-        return tabledict[tablename]
+        return tabledict[tablename].copy()
 
     def has_table(self, tablename):
         return tablename in self._tables.keys()
@@ -71,6 +70,9 @@ class _GTFSSingleton:
 
     def update_table(self, tablename, df, allow_column_changes=False):
         columns = self.get_columns(tablename, index=False)
+        if tablename == 'frequencies':
+            print('Annie F 11-11-2020 columns: %s', columns)
+            print('Annie F 11-11-2020 df.columns: %s', df.columns)
         if allow_column_changes:
             columns_with_index = list(set(df.columns.tolist() + df.index.names))
             self._gtfsreader.update_table_columns(tablename, columns_with_index)
@@ -80,6 +82,8 @@ class _GTFSSingleton:
             index = table_index[tablename].copy()
             index.sort()
             df_index = df.index.names.copy()
+            # print('Annie F 11-11-2020 df_index: %s', df_index)
+            # print('Annie F 11-11-2020 df.columns: %s', df.columns)
             df_index.sort()
             if not index == df_index:
                 df = df.set_index(index)
@@ -96,6 +100,9 @@ class _GTFSSingleton:
         # This is the only required file in the GTFS-Ride spec (5/4/2020)
         # https://github.com/ODOT-PTS/GTFS-ride/blob/master/spec/en/reference.md
         return self.has_table('ride_feed_info')
+
+    def is_multiagency(self):
+        return self.get_table('agency')['agency_name'].size > 1
 
     def only_uses_calendar_dates(self):
         # Returns true if the feed defines all service using calendar_dates

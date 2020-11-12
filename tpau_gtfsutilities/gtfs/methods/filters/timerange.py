@@ -1,3 +1,4 @@
+import pandas as pd
 from tpau_gtfsutilities.gtfs.methods.helpers import triphelpers
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
 
