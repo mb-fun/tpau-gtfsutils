@@ -2,7 +2,7 @@ import pandas as pd
 import datetime
 import numpy as np
 
-from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
+from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs as gtfssingleton
 from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDateRange, GTFSDateRange
 
 class GTFSServiceCalendar:
@@ -10,11 +10,14 @@ class GTFSServiceCalendar:
     dows = {}
     added_dates = [] # list of datestrings
     removed_dates = [] # list of datestrings
+    _gtfs = None
 
-    def __init__(self, service_id):
+    def __init__(self, service_id, gtfs_override=None):
         # TODO: ensure this works for alternate calendars method
 
-        calendar_row = gtfs.get_table('calendar').loc[service_id]
+        self._gtfs = gtfs_override if gtfs_override else gtfs_singleton
+
+        calendar_row = self._gtfs.get_table('calendar').loc[service_id]
         self.daterange = GTFSDateRange(calendar_row.loc['start_date'], calendar_row.loc['end_date'])
 
         # dows
@@ -24,7 +27,7 @@ class GTFSServiceCalendar:
             self.dows[day] = (calendar_row.loc[day] == 1)
 
         # exceptions
-        calendar_dates = gtfs.get_table('calendar_dates')
+        calendar_dates = self._gtfs.get_table('calendar_dates')
         exceptions = calendar_dates[calendar_dates['service_id'] == service_id]
         added_exceptions = exceptions[exceptions['exception_type'] == 1]
         self.added_dates = added_exceptions['date'].astype(str).tolist()

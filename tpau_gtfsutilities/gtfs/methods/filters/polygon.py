@@ -1,5 +1,4 @@
 import geopandas as gpd
-from shapely.geometry import Point
 
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
 
@@ -10,7 +9,7 @@ def filter_stops_by_multipolygon(multipolygon):
     stops = gtfs.get_table('stops')
 
     stops_gdf = gpd.GeoDataFrame(stops, geometry=gpd.points_from_xy(stops['stop_lon'], stops['stop_lat']))
-    stops_gdf = stops_gdf.set_crs(epsg=4326)
+    stops_gdf = stops_gdf.set_crs(epsg=2992)
 
     stops_in_area = stops_gdf.geometry.transform(lambda g: multipolygon.contains(g)).rename('in_area')
 

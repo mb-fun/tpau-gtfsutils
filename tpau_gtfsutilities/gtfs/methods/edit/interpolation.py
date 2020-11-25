@@ -79,12 +79,6 @@ def interpolate_stop_times():
         right_index=True
     )
 
-    # print('Annie F 11-02-2020 stop_times.dtypes: %s', stop_times.dtypes)
-    # print('Annie F 11-02-2020 stop_times[start_time]: %s', stop_times['start_time'])
-    # print('Annie F 11-02-2020 stop_times[start_time]: %s', stop_times['end_time'])
-    # print('Annie F 11-02-2020 stop_times[start_time].transform(seconds_since_zero): %s', stop_times['start_time'].transform(seconds_since_zero).dtype)
-    # print('Annie F 11-02-2020 stop_times[end_time].transform(seconds_since_zero): %s', stop_times['end_time'].transform(seconds_since_zero).dtype)
-
     def interpolate_row(row):
         # happens if last stop or on 1-stop chunks (consecutive timepoints)
         if (row['start_time'] == row['end_time']):

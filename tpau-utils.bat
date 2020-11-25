@@ -6,6 +6,7 @@ IF "%1" == "" (
     ECHO   one_day
     ECHO   stop_visits
     ECHO   interpolate_stoptimes
+    ECHO   cluster_stops
     EXIT /b
 )
 

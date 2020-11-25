@@ -1,5 +1,6 @@
 from .gtfsutility import GTFSUtility
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
+from tpau_gtfsutilities.gtfs.gtfsreader import GTFSReader
 from tpau_gtfsutilities.config.utilityconfig import utilityconfig
 
 from tpau_gtfsutilities.gtfs.methods.filters.date import filter_trips_by_date
@@ -18,17 +19,19 @@ class AverageHeadway(GTFSUtility):
         
         for feed in settings['gtfs_feeds']:
             if not settings['time_ranges']:
-                gtfs.load_feed(feed)
+                gtfsreader = GTFSReader(feed)
+                gtfs.load_feed(gtfsreader)
+
                 filter_trips_by_date(settings['date'])
                 prune_unused_trips()
                 calculate_average_headways(settings['date'], None)
             else:
                 for timerange in settings['time_ranges']:
-                    gtfs.load_feed(feed)
+                    gtfsreader = GTFSReader(feed)
+                    gtfs.load_feed(gtfsreader)
+                    
                     filter_trips_by_date(settings['date'])
                     filter_single_trips_by_timerange(timerange)
                     filter_repeating_trips_by_timerange(timerange)
                     prune_unused_trips()
                     calculate_average_headways(settings['date'], timerange)
-
-            gtfs.close_tables()
