@@ -27,12 +27,13 @@ class GTFSServiceCalendar:
             self.dows[day] = (calendar_row.loc[day] == 1)
 
         # exceptions
-        calendar_dates = self._gtfs.get_table('calendar_dates')
-        exceptions = calendar_dates[calendar_dates['service_id'] == service_id]
-        added_exceptions = exceptions[exceptions['exception_type'] == 1]
-        self.added_dates = added_exceptions['date'].astype(str).tolist()
-        removed_exceptions = exceptions[exceptions['exception_type'] == 2]
-        self.removed_dates = removed_exceptions['date'].astype(str).tolist()
+        if self._gtfs.has_table('calendar_dates'):
+            calendar_dates = self._gtfs.get_table('calendar_dates')
+            exceptions = calendar_dates[calendar_dates['service_id'] == service_id]
+            added_exceptions = exceptions[exceptions['exception_type'] == 1]
+            self.added_dates = added_exceptions['date'].astype(str).tolist()
+            removed_exceptions = exceptions[exceptions['exception_type'] == 2]
+            self.removed_dates = removed_exceptions['date'].astype(str).tolist()
 
     def num_active_days(self):
         # hopefully this isn't slow on large calendars

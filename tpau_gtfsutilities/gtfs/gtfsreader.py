@@ -12,7 +12,7 @@ class GTFSReader:
         self.contents = {} # dict of filename (no ext): list of columns
 
     def get_path(self):
-        return os.path.join(utilityconfig.input_dir(), self.filename)
+        return os.path.join(utilityconfig.get_input_dir(), self.filename)
 
     def tables(self):
         return self.contents.keys()
@@ -25,20 +25,23 @@ class GTFSReader:
         zipreader = zipfile.ZipFile(self.get_path(), 'r')
         filelist = zipreader.namelist()
 
+        self.__unzip()
+
         for filename in filelist:
             hidden = filename.startswith('.')
+
             if not hidden:
                 tablename = filename.split('.')[0]
-                self.contents[tablename] = []
 
-    def __capture_feed_table_headers(self):
-        # needs to be called after unzip
-        for tablename in self.contents.keys():
-            path = os.path.join(utilityconfig.input_dir(), tablename + '.txt')
-            with open(path, 'r', newline='') as file:
-                csvin = csv.reader(file)
-                headers = next(csvin, [])
-                self.contents[tablename] = headers
+                path = os.path.join(utilityconfig.get_input_dir(), tablename + '.txt')
+                with open(path, 'r', newline='') as file:
+                    csvin = csv.reader(file)
+                    headers = next(csvin, [])
+
+                    # Invalid csv files may be read as having no headers
+                    if len(headers):
+                        self.contents[tablename] = []
+                        self.contents[tablename] = headers
 
     def __validate_zipfile(self):
         filepath = self.get_path()
@@ -47,40 +50,32 @@ class GTFSReader:
         assert zipfile.is_zipfile(filepath), 'ERROR %s not a valid zip file path' % filepath
 
     def __unzip(self):
-        try:
-            zip_reader = zipfile.ZipFile(self.get_path(), 'r')
-            zip_reader.extractall(utilityconfig.input_dir())
-        except zipfile.BadZipFile:
-            logger.error('Error: Bad zip file found at %s ' % filepath)
-            return
-        except FileNotFoundError:
-            logger.error('Error: File not found at %s ' % filepath)
-            return
+        zip_reader = zipfile.ZipFile(self.get_path(), 'r')
+        zip_reader.extractall(utilityconfig.get_input_dir())
+
 
     def __convert_to_csv(self):
         for tablename in self.contents:
             filename = tablename + '.txt'
-            assert os.path.isfile(os.path.join(utilityconfig.input_dir(), filename)), '%s not found in feed' % filename
 
             filename_no_extension = filename[:-4]
             csv_filename = filename_no_extension + '.csv'
 
-            filepath = os.path.join(utilityconfig.input_dir(), filename)
-            dst_csv = os.path.join(utilityconfig.input_dir(), csv_filename)
+            filepath = os.path.join(utilityconfig.get_input_dir(), filename)
+            dst_csv = os.path.join(utilityconfig.get_input_dir(), csv_filename)
 
             os.rename(filepath, dst_csv)
 
     def cleanup_gtfs_files_in_data_dir(self):
         for tablename in self.contents:
             filename = tablename + '.csv'
-            filepath = os.path.join(utilityconfig.input_dir(), filename)
+            filepath = os.path.join(utilityconfig.get_input_dir(), filename)
             os.remove(filepath)
 
 
     def unpack_csvs(self):
         self.__validate_zipfile()
-        self.__capture_feed_tables()
         self.__unzip()
-        self.__capture_feed_table_headers()
+        self.__capture_feed_tables()
         self.__convert_to_csv()
 

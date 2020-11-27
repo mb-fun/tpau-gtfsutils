@@ -25,7 +25,7 @@ class GTFS:
         gtfsreader.unpack_csvs()
 
         for tablename in gtfsreader.contents:
-            csv = os.path.join(utilityconfig.input_dir(), tablename + '.csv')
+            csv = os.path.join(utilityconfig.get_input_dir(), tablename + '.csv')
             df = pd.read_csv(csv)
             if (tablename in table_index.keys()):
                 df = df.set_index(table_index[tablename])

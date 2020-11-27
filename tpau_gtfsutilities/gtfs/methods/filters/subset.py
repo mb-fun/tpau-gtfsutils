@@ -7,8 +7,9 @@ def subset_entire_feed(daterange, timerange=None):
     filter_calendars_by_daterange(daterange)
     filter_calendar_dates_by_daterange(daterange)
     filter_board_alight_by_daterange(daterange)
-    filter_single_trips_by_timerange(timerange)
-    filter_repeating_trips_by_timerange(timerange)
+    if timerange and timerange['start'] and timerange['end']:
+        filter_single_trips_by_timerange(timerange)
+        filter_repeating_trips_by_timerange(timerange)
     prune.prune_unused_trips()
     prune.prune_unused_calendars()
     prune.prune_unused_stops()

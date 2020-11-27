@@ -6,27 +6,37 @@ class _UtilityConfig:
     utility = None
     current_feed = None
     current_time_range = None # Needed for average_headway utility
+    config_file = None
+    input_dir = None
 
     def set_utility(self, utility):
         # utiltiy is one of:
         #   average_headways
         #   one_day
+        #   cluster_stops
+        #   interpolate_stoptimes
+        #   stop_visits
 
         self.utility = utility
 
-    def config_file(self):
-        # config file is always {utilityname}.yaml
-        return self.utility + '.yaml'
+    def set_config_file(self, cf):
+        self.config_file = cf
+    
+    def set_input_dir(self, dir):
+        self.input_dir = dir
 
     def get_settings(self):
-        config_path = os.path.join(self.configs_dir(), self.config_file())
-        return yaml.load(open(config_path), Loader=yaml.BaseLoader)
+        return yaml.load(open(self.get_config_file()), Loader=yaml.BaseLoader)
 
-    def input_dir(self):
-        return 'data'
+    def get_input_dir(self):
+        default_input_dir = 'data'
+        dir = self.input_dir if self.input_dir else default_input_dir
+        return dir
     
-    def configs_dir(self):
-        return 'configs'
+    def get_config_file(self):
+        default_cf = 'configs/' + self.utility + 'yaml'
+        cf = self.config_file if self.config_file else default_cf
+        return cf
 
     def set_current_feed(self, feed):
         self.current_feed = feed

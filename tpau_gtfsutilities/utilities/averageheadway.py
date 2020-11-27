@@ -18,18 +18,15 @@ class AverageHeadway(GTFSUtility):
         # TODO: valdate settings
         
         for feed in settings['gtfs_feeds']:
-            if not settings['time_ranges']:
-                gtfsreader = GTFSReader(feed)
-                gtfs.load_feed(gtfsreader)
-
+            gtfsreader = GTFSReader(feed)
+            gtfs.load_feed(gtfsreader)
+            time_ranges_defined = settings['time_ranges'] and len(settings['time_ranges']) and settings['time_ranges'][0]['start']
+            if not time_ranges_defined:
                 filter_trips_by_date(settings['date'])
                 prune_unused_trips()
                 calculate_average_headways(settings['date'], None)
             else:
                 for timerange in settings['time_ranges']:
-                    gtfsreader = GTFSReader(feed)
-                    gtfs.load_feed(gtfsreader)
-                    
                     filter_trips_by_date(settings['date'])
                     filter_single_trips_by_timerange(timerange)
                     filter_repeating_trips_by_timerange(timerange)

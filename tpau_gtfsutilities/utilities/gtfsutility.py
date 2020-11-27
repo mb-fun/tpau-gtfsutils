@@ -8,7 +8,7 @@ class GTFSUtility:
     name = None
 
     def input_file_path(self, filename):
-        return os.path.join(utilityconfig.input_dir(), filename)
+        return os.path.join(utilityconfig.get_input_dir(), filename)
     
     def run(self):
         pass

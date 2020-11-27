@@ -4,6 +4,7 @@ import zipfile
 class _UtilityOutput:
     utility = None
     dir_index = 0
+    parent_output_dir = None
 
     def initialize_utility(self, utility):
         # utiltiy is one of:
@@ -13,15 +14,20 @@ class _UtilityOutput:
         self.utility = utility
         self.create_output_dir()
 
+    def set_parent_output_dir(self, dir):
+        self.parent_output_dir = dir
+
+    def get_parent_output_dir(self):
+        return self.parent_output_dir if self.parent_output_dir else 'output'
+
     def create_output_dir(self):
         while (os.path.exists(self.get_output_dir())):
             self.dir_index += 1
         os.mkdir(self.get_output_dir())
 
     def get_output_dir(self):
-        parentdir = 'output'
         dirname = self.utility + '_' + str(self.dir_index) if self.dir_index > 0 else self.utility
-        return os.path.join(parentdir, dirname)
+        return os.path.join(self.get_parent_output_dir(), dirname)
 
     def write_or_append_to_output_csv(self, df, filename, index=False):
         csvfile = os.path.join(self.get_output_dir(), filename)
