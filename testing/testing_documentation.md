@@ -38,7 +38,7 @@ Output shows a handful of inconsistencies between the two reports, the utilties 
                 1  802022                3.0           NaN
                 1  802034                6.0           NaN
                 1  802549                3.0           NaN
-        ```
+```
 
 However, unless I used incorrect parameters I believe the utilities report is correct and the TNeXT report should include these stops:
 - The reports are both for Wednesday 7/24/2019, with no time range bounds
