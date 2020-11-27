@@ -14,27 +14,27 @@ Tested against TNeXT Stop Visit Report for AAMPO 2019:
     
     
 Output shows a handful of inconsistencies between the two reports, the utilties report includes stop and visits that TNeXT does not:
-```
-    Stops with different visit counts: 
-    agency_id  stop_id  GTFS Utils Visits  Agency ID  Stop ID  TNeXT Visits
-    77          1   802038                3.0        NaN      NaN           NaN
-    78          1   802254                3.0        NaN      NaN           NaN
-    79          1   802221                3.0        NaN      NaN           NaN
-    80          1   802010                3.0        NaN      NaN           NaN
-    81          1   802054               15.0        NaN      NaN           NaN
-    82          1   802039               10.0        NaN      NaN           NaN
-    86          1   802040               12.0        NaN      NaN           NaN
-    87          1   802551               12.0        NaN      NaN           NaN
-    88          1   802032                5.0        NaN      NaN           NaN
-    89          1   802005                8.0        NaN      NaN           NaN
-    90          1   802475               11.0        NaN      NaN           NaN
-    91          1   802033                3.0        NaN      NaN           NaN
-    92          1   802008                3.0        NaN      NaN           NaN
-    93          1   802009                3.0        NaN      NaN           NaN
-    94          1   802022                3.0        NaN      NaN           NaN
-    95          1   802034                6.0        NaN      NaN           NaN
-    96          1   802549                3.0        NaN      NaN           NaN
-```
+        ```
+        Stops with different visit counts: 
+        Agency ID Stop ID  GTFS Utils Visits  TNeXT Visits
+                1  802038                3.0           NaN
+                1  802254                3.0           NaN
+                1  802221                3.0           NaN
+                1  802010                3.0           NaN
+                1  802054               15.0           NaN
+                1  802039               10.0           NaN
+                1  802040               12.0           NaN
+                1  802551               12.0           NaN
+                1  802032                5.0           NaN
+                1  802005                8.0           NaN
+                1  802475               11.0           NaN
+                1  802033                3.0           NaN
+                1  802008                3.0           NaN
+                1  802009                3.0           NaN
+                1  802022                3.0           NaN
+                1  802034                6.0           NaN
+                1  802549                3.0           NaN
+        ```
 
 However, unless I used incorrect parameters I believe the utilities report is correct and the TNeXT report should include these stops:
     - The reports are both for Wednesday 7/24/2019, with no time range bounds

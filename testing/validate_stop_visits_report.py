@@ -37,10 +37,17 @@ def main():
 
     non_matching_results = results[results[util_cols['visits']] != results[tnext_cols['visits']]]
     non_matching_results = non_matching_results.rename(columns={ util_cols['visits']: 'GTFS Utils Visits', tnext_cols['visits']: 'TNeXT Visits' })
+
     if non_matching_results.empty:
         print('All visit counts match!')
     else:
-        print('Stops with different visit counts: \n', non_matching_results.to_string())
+        # cleanup before printing
+        non_matching_results[tnext_cols['agency_id']] = non_matching_results[tnext_cols['agency_id']].fillna(non_matching_results[util_cols['agency_id']].astype('str'))
+        non_matching_results[tnext_cols['stop_id']] = non_matching_results[tnext_cols['stop_id']].fillna(non_matching_results[util_cols['stop_id']].astype('str'))
+
+        non_matching_results = non_matching_results[[tnext_cols['agency_id'], tnext_cols['stop_id'], 'GTFS Utils Visits', 'TNeXT Visits']]
+
+        print('Stops with different visit counts: \n', non_matching_results.to_string(index=False))
 
 
 if __name__ == '__main__':
