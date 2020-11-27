@@ -5,4 +5,5 @@ __pycache__/
 data/
 configs/*test*
 *develop*.sh
+run_tests.sh
 testing/
