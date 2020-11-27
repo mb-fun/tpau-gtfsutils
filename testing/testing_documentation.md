@@ -7,14 +7,18 @@ Test feeds used in the configs can be downloaded at [http://www.oregon-gtfs.com/
 ## Stop Visits Testing Results
 
 Tested against TNeXT Stop Visit Report for AAMPO 2019:
-    1. Generate report with utilities using `stop_visits.aampo-2019-full.yaml` (AAMPO 2019 feed provided by ODOT):
-        `python main.py -u stop_visits -c testing/configs/stop_visits.aampo-2019-full.yaml -i testing/data/ -o testing/output/`
-    2. Test results against AAMPO-2019-full-Stops Summary Report (`aampo-2019-full-stops.csv`):
-        `. run_validate_stop_visits_report.sh output/stop_visits/stop_visit_report.csv aampo-2019-full-stops.csv`
+
+1. Generate report with utilities using `stop_visits.aampo-2019-full.yaml` (AAMPO 2019 feed provided by ODOT):
+
+    `python main.py -u stop_visits -c testing/configs/stop_visits.aampo-2019-full.yaml -i testing/data/ -o testing/output/`
+
+2. Test results against AAMPO-2019-full-Stops Summary Report (`aampo-2019-full-stops.csv`):
+
+    `. run_validate_stop_visits_report.sh output/stop_visits/stop_visit_report.csv aampo-2019-full-stops.csv`
     
-    
-Output shows a handful of inconsistencies between the two reports, the utilties report includes stop and visits that TNeXT does not:
-        ```
+
+Output shows a handful of inconsistencies between the two reports, the utilties report includes stop and visits that TNeXT does not (`NaN` is shown if the stop ID was not in the report):
+```
         Stops with different visit counts: 
         Agency ID Stop ID  GTFS Utils Visits  TNeXT Visits
                 1  802038                3.0           NaN
@@ -37,12 +41,13 @@ Output shows a handful of inconsistencies between the two reports, the utilties 
         ```
 
 However, unless I used incorrect parameters I believe the utilities report is correct and the TNeXT report should include these stops:
-    - The reports are both for Wednesday 7/24/2019, with no time range bounds
-    - In the AAMPO 2019 feed:
-        - service_id 1 is the only calendar that is active that day, and there are no service exceptions
-        - trip_ids 1-11 and 21-45 use service_id 1
-        - There are several instances of stops above being served on these trips:
-            - For example, trip_ids 21, 24, and 25 serve several of the stops not included in the TNeXT report:
+- The reports are both for Wednesday 7/24/2019, with no time range bounds
+- In the AAMPO 2019 feed:
+    - service_id 1 is the only calendar that is active that day, and there are no service exceptions
+    - trip_ids 1-11 and 21-45 use service_id 1
+    - There are several instances of stops above being served on these trips:
+        - For example, trip_ids 21, 24, and 25 serve several of the stops not included in the TNeXT report:
+
             ```
             trip_id,block_id,route_id,service_id,direction_id,shape_id
             24,801640,1,07:35:00,07:35:00,1
