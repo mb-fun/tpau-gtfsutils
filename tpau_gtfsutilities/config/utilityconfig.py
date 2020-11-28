@@ -34,7 +34,7 @@ class _UtilityConfig:
         return dir
     
     def get_config_file(self):
-        default_cf = 'configs/' + self.utility + 'yaml'
+        default_cf = 'configs/' + self.utility + '.yaml'
         cf = self.config_file if self.config_file else default_cf
         return cf
 
