@@ -17,6 +17,7 @@ class InterpolateStoptimes(GTFSUtility):
         for feed in settings['gtfs_feeds']:
             gtfsreader = GTFSReader(feed)
             gtfs.load_feed(gtfsreader)
+            gtfs.preprocess()
 
             if not interpolate_stop_times():
                 print("Cannot interpolate stop times -- feed needs to have shapes.txt and needs to use shape_dist_traveled in stop_times.txt")

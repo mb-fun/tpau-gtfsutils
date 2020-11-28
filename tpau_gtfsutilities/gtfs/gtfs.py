@@ -4,6 +4,7 @@ import os
 from .gtfsreader import GTFSReader
 from tpau_gtfsutilities.config.utilityconfig import utilityconfig
 from tpau_gtfsutilities.config.utilityoutput import utilityoutput
+from tpau_gtfsutilities.gtfs.process import preprocess
 from .properties import REQUIRED_TABLES
 from .gtfserrors import MissingRequiredFileError
 
@@ -33,6 +34,9 @@ class GTFS:
             self._original_tables[tablename] = df.copy()
 
         gtfsreader.cleanup_gtfs_files_in_data_dir()
+
+    def preprocess(self):
+        preprocess.remove_all_wrapping_quotations_in_gtfs(self)
 
     def write_feed(self, feedname):
         unindexed_tables = {}
@@ -108,6 +112,14 @@ class GTFS:
     def only_uses_calendar_dates(self):
         # Returns true if the feed defines all service using calendar_dates
         return self.has_table('calendar')
+
+    def run_function_on_all_tables(self, func):
+        # func should be a function that accepts a df
+
+        for tablename in self._tables.keys():
+            df = self.get_table(tablename)
+            new_df = func(df)
+            self.update_table(tablename, new_df)
 
     # def close_tables(self):
     #     self._gtfsreader.cleanup_gtfs_files_in_data_dir()

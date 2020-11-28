@@ -16,6 +16,7 @@ class OneDay(GTFSUtility):
         for feed in settings['gtfs_feeds']:
             gtfsreader = GTFSReader(feed)
             gtfs.load_feed(gtfsreader)
+            gtfs.preprocess()
 
             remove_exception_calendars()
             subset_entire_feed(settings['date_range'], settings['time_range'])

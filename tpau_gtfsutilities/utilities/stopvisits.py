@@ -28,6 +28,7 @@ class StopVisits(GTFSUtility):
         for feed in settings['gtfs_feeds']:
             gtfsreader = GTFSReader(feed)
             gtfs.load_feed(gtfsreader)
+            gtfs.preprocess()
 
             subset_entire_feed(settings['date_range'], settings['time_range'])
             polygon_file = settings['polygon']
