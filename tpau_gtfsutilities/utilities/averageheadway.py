@@ -15,11 +15,12 @@ class AverageHeadway(GTFSUtility):
     def run(self):
         settings = utilityconfig.get_settings()
 
-        # TODO: valdate settings
-        
         for feed in settings['gtfs_feeds']:
+            print("Processing " + feed + "...")
             gtfsreader = GTFSReader(feed)
             gtfs.load_feed(gtfsreader)
+            gtfs.preprocess(gtfsreader)
+            
             time_ranges_defined = settings['time_ranges'] and len(settings['time_ranges']) and settings['time_ranges'][0]['start']
             if not time_ranges_defined:
                 filter_trips_by_date(settings['date'])

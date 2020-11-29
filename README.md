@@ -1,5 +1,7 @@
 # TPAU GTFS Utilities
 
+## How To Use
+
 ### Requirements
 
 - Anaconda
@@ -27,4 +29,21 @@
 - In the Anaconda Prompt application, run `tpau-utils.bat average_headway`
   
 ### Output
+
 - Application output will go to `output/` directory
+
+## Behavior
+
+### GTFS Output Notes
+
+GTFS output may include some minor unintentional changes to the data, such as:
+
+- Decimal truncation -- Decimals are rounded to the nearest 12 decimal places. This would most commonly occur in lat/lon coordinates, but 12 decimal places is sufficiently for most purposes. Trailing zeros are also stripped from decimals over one place.
+- Conversion to float -- Columns that have a mixure of integer and float values will have integers converted to floats (i.e. 0 will become 0.0)
+- Column reordering -- Columns that serve as IDs for a file (i.e. trip_id in trips.txt) may be brought to the front of the columns.
+- Quotation removal -- The utilities remove wrapping quotes for fields that do not otherwise contain quotations or commas. 
+
+### Known Issues (will be fixed)
+
+- Utilities currently can't run on feeds that use calendar_dates.txt to define regular service
+- If a feed is filtered on a date range, calendars outside the range will be removed even if they are used in a service addition within the date range.

@@ -4,10 +4,10 @@ call conda create -n gtfsutils python=3.7
 call conda activate gtfsutils
 
 rem #new install
-pip install pandas
-pip install geopandas
-pip install pyyaml
-pip install shapely
+conda install pandas
+conda install geopandas
+conda install pyyaml
+conda install shapely
 
 python setup.py develop
 

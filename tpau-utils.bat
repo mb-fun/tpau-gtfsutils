@@ -1,4 +1,7 @@
 @echo off
+REM Runs the utility specified by user.
+REM First argument is the utility (required)
+REM Second argument is the config file (optional, program defaults to configs/[utility].yaml)
 
 IF "%1" == "" (
     ECHO Utility argument required, please use one of the following:
@@ -11,5 +14,12 @@ IF "%1" == "" (
 )
 
 CALL conda activate gtfsutils
-python main.py -u %1
+
+IF "%2" == "" (
+    python main.py -u %1
+)
+ELSE (
+    python main.py -u %1 -c %2
+)
+
 CALL conda deactivate
