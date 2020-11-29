@@ -15,9 +15,8 @@ class AverageHeadway(GTFSUtility):
     def run(self):
         settings = utilityconfig.get_settings()
 
-        # TODO: valdate settings
-        
         for feed in settings['gtfs_feeds']:
+            print("Processing " + feed + "...")
             gtfsreader = GTFSReader(feed)
             gtfs.load_feed(gtfsreader)
             gtfs.preprocess(gtfsreader)

@@ -15,6 +15,7 @@ class InterpolateStoptimes(GTFSUtility):
         settings = utilityconfig.get_settings()
 
         for feed in settings['gtfs_feeds']:
+            print("Processing " + feed + "...")
             gtfsreader = GTFSReader(feed)
             gtfs.load_feed(gtfsreader)
             gtfs.preprocess()
