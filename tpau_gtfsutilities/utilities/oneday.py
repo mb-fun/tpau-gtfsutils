@@ -10,19 +10,8 @@ from tpau_gtfsutilities.gtfs.methods.filters.subset import subset_entire_feed
 
 class OneDay(GTFSUtility):
     name = 'one_day'
+    write_feed = True
 
-    def run(self):
-        settings = utilityconfig.get_settings()
-
-        for feed in settings['gtfs_feeds']:
-            feed_no_extension = feed[:-4]
-            utilityoutput.set_feedname(feed_no_extension)
-            print("Processing " + feed + "...")
-            gtfsreader = GTFSReader(feed)
-            gtfs.load_feed(gtfsreader)
-            gtfs.preprocess()
-
-            remove_exception_calendars()
-            subset_entire_feed(settings['date_range'], settings['time_range'])
-            feed_no_extension = feed[:-4]
-            gtfs.write_feed(feed_no_extension)
+    def run_on_gtfs_singleton(self, settings):
+        remove_exception_calendars()
+        subset_entire_feed(settings['date_range'], settings['time_range'])

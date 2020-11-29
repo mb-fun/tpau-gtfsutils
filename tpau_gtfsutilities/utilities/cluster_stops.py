@@ -13,14 +13,14 @@ from tpau_gtfsutilities.gtfs.methods.filters.subset import subset_entire_feed
 class ClusterStops(GTFSUtility):
     name = 'cluster_stops'
 
-    def run(self):
+    def run(self, continue_on_error=False):
+        # because this function aggregates results, continue_on_error is unused
+        # and utility is ran collectively on feeds rather than one-by-one
+
         settings = utilityconfig.get_settings()
 
         for feed in settings['gtfs_feeds']:
-            print("Processing " + feed + "...")
-            gtfsreader = GTFSReader(feed)
-            gtfs.load_feed(gtfsreader)
-            gtfs.preprocess()
+            self.load_feed_into_gtfs_singleton(feed)
 
             subset_entire_feed(settings['date_range'], settings['time_range'])
 

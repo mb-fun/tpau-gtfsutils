@@ -38,17 +38,20 @@ def run():
     input_help = 'Input directory (defaults to data/)'
     output_help = 'Output directory (defaults to output/)'
     config_help = 'Yaml config file. If not provided, it will look for a matching file in the configs/ directory (i.e. one_day.yaml)'
+    continue_on_error_help = 'Continue on error. If a common error is thrown before all feeds have been processed, utilities will proceed with the rest of the feeds. Mostly useful for testing.'
 
     parser.add_argument('-u', '--utility', help=utility_help, required=True, choices=valid_utilities, nargs='?')
     parser.add_argument('-i', '--input-dir', help=input_help, required=False, nargs='?')
     parser.add_argument('-c', '--config', help=config_help, required=False, nargs='?')
     parser.add_argument('-o', '--output-dir', help=output_help, required=False, nargs='?')
+    parser.add_argument('-e', '--continue-on-error', help=continue_on_error_help, action='store_true')
     
     args = parser.parse_args()
     utility = args.utility
     input_dir = args.input_dir
     output_dir = args.output_dir
     config = args.config
+    continue_on_error = args.continue_on_error
 
     utilityconfig.set_utility(utility)
     if input_dir:
@@ -61,7 +64,7 @@ def run():
     utilityoutput.initialize_utility(utility)
 
     utilityrunner = get_utility_runner(utility)
-    utilityrunner.run()
+    utilityrunner.run(continue_on_error=continue_on_error)
 
 
 if __name__ == '__main__':

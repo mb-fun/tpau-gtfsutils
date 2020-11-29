@@ -33,6 +33,9 @@ class _UtilityConfig:
         dir = self.input_dir if self.input_dir else default_input_dir
         return dir
     
+    def get_input_file_path(self, file):
+        return os.path.join(self.get_input_dir(), file)
+    
     def get_config_file(self):
         default_cf = 'configs/' + self.utility + '.yaml'
         cf = self.config_file if self.config_file else default_cf
