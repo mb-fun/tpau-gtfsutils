@@ -1,0 +1,59 @@
+# config file for One Day utility
+
+# -------------------------------
+# ---- USER INPUT PARAMETERS ----
+# -------------------------------
+
+# GTFS File names
+#   - Name should include extension (i.e. "good_feed.zip")
+#   - IMPORTANT: These feeds need to be in the "data/" directory
+#   - Example: 
+#
+#     gtfs_feeds: 
+#       - good_feed.zip
+#       - another_good_feed.zip
+#
+
+gtfs_feeds:
+  - aampo-2019.zip
+  - cccxpress-or-us.zip
+  - linnshuttle-or-us.zip
+  # This feed has multiple issues, including containing csv files and missing 
+  # a required field (agency_name in agency.txt)
+  # - rvtd-or-us-RIDE.zip
+  # Unfortunately trimet is slow enough to require separate testing
+  # - trimet.zip
+  - albanytransit-or-us.zip
+  - josephinecounty-or-us-RIDE.zip
+  # LTD will currently fail because it uses calendar_dates for regular service 
+  # - ltd-or-us.zip
+  - tillamook-or-us.zip
+
+# Date range to subset feed by
+#   - Date format: 'YYYYMMDD'
+#   - Value should be quoted (single or double)
+#   - For one day, use the same date for start and end
+#   - Example:
+#
+#     date_range: 
+#       start: '200201102'
+#       end: '200201107'
+#
+
+date_range: 
+  start: 20201201
+  end: 20201208
+
+# Time range subset feed by
+#   - Time format: 'HH:MM:SS'
+#   - Value should be quoted (single or double)
+#   - Example:
+# 
+#     time_range:
+#         start: '06:00:00'
+#         end: '09:00:00'
+#
+
+time_range:
+    start: '09:00:00'
+    end: '18:00:00'
