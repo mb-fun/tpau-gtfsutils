@@ -19,7 +19,7 @@ class AverageHeadway(GTFSUtility):
             print("Processing " + feed + "...")
             gtfsreader = GTFSReader(feed)
             gtfs.load_feed(gtfsreader)
-            gtfs.preprocess(gtfsreader)
+            gtfs.preprocess()
             
             time_ranges_defined = settings['time_ranges'] and len(settings['time_ranges']) and settings['time_ranges'][0]['start']
             if not time_ranges_defined:
