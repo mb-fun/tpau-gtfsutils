@@ -7,8 +7,10 @@ conda activate gtfsutils
 util=$1
 
 for f in testing/configs/*.yaml; do
-    if [[ $f =~ $util ]];
-        then python main.py -u $util -c $f -i testing/data/ -o testing/output/;
+    if [[ $f =~ $util ]]
+    then 
+        echo "Running $util with config $f..."
+        python main.py -u $util -c $f -i testing/data/ -o testing/output/
     fi;
 done
 
