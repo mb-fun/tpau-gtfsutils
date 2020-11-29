@@ -30,7 +30,7 @@ class GTFSUtility:
                 try:
                     self.load_and_run_on_feed(feed, settings)
                 # catch common errors so utils can continue running on other feeds
-                except (ValueError, KeyError, TypeError, FileNotFoundError) as e:
+                except (ValueError, KeyError, TypeError, FileNotFoundError, ZeroDivisionError) as e:
                     print("ERROR: ", e)
             else:
                 self.load_and_run_on_feed(feed, settings)
