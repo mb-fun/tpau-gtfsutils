@@ -49,19 +49,16 @@ def prune_stops_from_stop_times():
 
     has_parent_station = 'parent_station' in stops.columns
 
-    if has_parent_station:
-        stops_pruned = stops[ \
-            (stops['stop_id'].isin(stop_times['stop_id'])) \
-                | (has_parent_station & stops['stop_id'].isin(stops['parent_station'])) \
-        ]
+    stops['in_stoptimes'] = stops['stop_id'].isin(stop_times['stop_id'])
 
-        # filter again to remove unused parent stops
-        stops_pruned = stops_pruned[ \
-            (stops['stop_id'].isin(stop_times['stop_id'])) \
-                | (has_parent_station & stops['stop_id'].isin(stops['parent_station'])) \
-        ]
+    if has_parent_station:
+        stops['is_parent'] = stops['stop_id'].isin(stops['parent_station'])
+        stops_pruned = stops[stops['in_stoptimes'] |  stops['is_parent']]
+
+        # filter again to remove parent stops whose children were removed
+        stops_pruned = stops[stops['in_stoptimes'] |  stops['is_parent']]
     else:
-        stops_pruned = stops[stops['stop_id'].isin(stop_times['stop_id'])]
+        stops_pruned = stops[stops['in_stoptimes']]
 
     gtfs.update_table('stops', stops_pruned)
 
