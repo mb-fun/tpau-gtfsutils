@@ -6,7 +6,12 @@ def remove_all_wrapping_quotations_in_gtfs(gtfs):
 def remove_wrapping_quotations_in_table(df):
     def strip_quotes_from_strings(x):
         if isinstance(x, str):
-            return x.strip('\"')
+            # allow wrapping quotes if quotation marks or commas used within field
+            # http://gtfs.org/reference/static/#file-requirements
+
+            needs_quotes = x.count('"') > 2 or x.count(',') > 0
+            if not needs_quotes:
+                return x.strip('\"')
         return x
 
     return df.applymap(strip_quotes_from_strings)
