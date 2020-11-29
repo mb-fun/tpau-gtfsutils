@@ -19,7 +19,7 @@ def filter_trips_by_date(date):
         trips_filter = date_in_range & dow_in_service
     
     # filter calendar_dates for relevant calendar exceptions
-    if not gtfs.has_table('calendar_dates'):
+    if gtfs.has_table('calendar_dates'):
         calendar_dates = gtfs.get_table('calendar_dates')
         added_on_date = (calendar_dates['date'] == date) & (calendar_dates['exception_type'] == 1)
         services_added_on_date = calendar_dates[added_on_date]['service_id']
