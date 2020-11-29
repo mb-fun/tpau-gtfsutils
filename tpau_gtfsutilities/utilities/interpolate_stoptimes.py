@@ -11,20 +11,8 @@ from tpau_gtfsutilities.gtfs.methods.edit.interpolation import interpolate_stop_
 
 class InterpolateStoptimes(GTFSUtility):
     name = 'interpolate_stoptimes'
+    write_feed = True
 
-    def run(self):
-        settings = utilityconfig.get_settings()
-
-        for feed in settings['gtfs_feeds']:
-            feed_no_extension = feed[:-4]
-            utilityoutput.set_feedname(feed_no_extension)
-            print("Processing " + feed + "...")
-            gtfsreader = GTFSReader(feed)
-            gtfs.load_feed(gtfsreader)
-            gtfs.preprocess()
-
-            if not interpolate_stop_times():
-                print("Cannot interpolate stop times -- feed needs to have shapes.txt and needs to use shape_dist_traveled in stop_times.txt")
-            
-            feed_no_extension = feed[:-4]
-            gtfs.write_feed(feed_no_extension)
+    def run_on_gtfs_singleton(self, settings):
+        if not interpolate_stop_times():
+            print("Cannot interpolate stop times -- feed needs to have shapes.txt and needs to use shape_dist_traveled in stop_times.txt")

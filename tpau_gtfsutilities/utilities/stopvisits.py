@@ -23,23 +23,13 @@ class StopVisits(GTFSUtility):
         gdf = gpd.read_file(filepath).to_crs(epsg=2992)
         return MultiPolygon(gdf.geometry.iloc[0])
 
-    def run(self):
-        settings = utilityconfig.get_settings()
+    def run_on_gtfs_singleton(self, settings):
+        subset_entire_feed(settings['date_range'], settings['time_range'])
+        polygon_file = settings['polygon']
+        
+        if (polygon_file):
+            polygon_file_path = utilityconfig.get_input_file_path(polygon_file)
+            multipolygon = self.read_multipolygon_from_file(polygon_file_path)
+            filter_stops_by_multipolygon(multipolygon)
 
-        for feed in settings['gtfs_feeds']:
-            feed_no_extension = feed[:-4]
-            utilityoutput.set_feedname(feed_no_extension)
-            print("Processing " + feed + "...")
-            gtfsreader = GTFSReader(feed)
-            gtfs.load_feed(gtfsreader)
-            gtfs.preprocess()
-
-            subset_entire_feed(settings['date_range'], settings['time_range'])
-            polygon_file = settings['polygon']
-            
-            if (polygon_file):
-                polygon_file_path = self.input_file_path(polygon_file)
-                multipolygon = self.read_multipolygon_from_file(polygon_file_path)
-                filter_stops_by_multipolygon(multipolygon)
-
-            calculate_stop_visits()
+        calculate_stop_visits()
