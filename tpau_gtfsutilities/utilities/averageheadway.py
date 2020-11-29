@@ -2,6 +2,7 @@ from .gtfsutility import GTFSUtility
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
 from tpau_gtfsutilities.gtfs.gtfsreader import GTFSReader
 from tpau_gtfsutilities.config.utilityconfig import utilityconfig
+from tpau_gtfsutilities.config.utilityoutput import utilityoutput
 
 from tpau_gtfsutilities.gtfs.methods.filters.date import filter_trips_by_date
 from tpau_gtfsutilities.gtfs.methods.filters.timerange import filter_single_trips_by_timerange
@@ -16,6 +17,8 @@ class AverageHeadway(GTFSUtility):
         settings = utilityconfig.get_settings()
 
         for feed in settings['gtfs_feeds']:
+            feed_no_extension = feed[:-4]
+            utilityoutput.set_feedname(feed_no_extension)
             print("Processing " + feed + "...")
             gtfsreader = GTFSReader(feed)
             gtfs.load_feed(gtfsreader)

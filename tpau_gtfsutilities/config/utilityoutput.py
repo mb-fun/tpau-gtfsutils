@@ -5,6 +5,7 @@ class _UtilityOutput:
     utility = None
     dir_index = 0
     parent_output_dir = None
+    _feedname = None
 
     def initialize_utility(self, utility):
         # utiltiy is one of:
@@ -12,7 +13,7 @@ class _UtilityOutput:
         #   one_day
 
         self.utility = utility
-        self.create_output_dir()
+        self.create_utilty_output_dir()
 
     def set_parent_output_dir(self, dir):
         self.parent_output_dir = dir
@@ -20,14 +21,26 @@ class _UtilityOutput:
     def get_parent_output_dir(self):
         return self.parent_output_dir if self.parent_output_dir else 'output'
 
-    def create_output_dir(self):
-        while (os.path.exists(self.get_output_dir())):
-            self.dir_index += 1
-        os.mkdir(self.get_output_dir())
+    def set_feedname(self, feedname):
+        self._feedname = feedname
 
-    def get_output_dir(self):
+    def create_utilty_output_dir(self):
+        while (os.path.exists(self.get_utility_output_dir())):
+            self.dir_index += 1
+        os.mkdir(self.get_utility_output_dir())
+
+    def get_utility_output_dir(self):
         dirname = self.utility + '_' + str(self.dir_index) if self.dir_index > 0 else self.utility
         return os.path.join(self.get_parent_output_dir(), dirname)
+    
+    def get_output_dir(self):
+        if self._feedname:
+            out_dir = os.path.join(self.get_utility_output_dir(), self._feedname)
+        else:
+            out_dir = self.get_utility_output_dir()
+        if not (os.path.exists(out_dir)):
+            os.mkdir(out_dir)
+        return out_dir
 
     def write_or_append_to_output_csv(self, df, filename, index=False):
         csvfile = os.path.join(self.get_output_dir(), filename)
