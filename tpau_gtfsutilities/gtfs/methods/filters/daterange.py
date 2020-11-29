@@ -22,13 +22,13 @@ def filter_calendars_by_daterange(daterange):
         axis=1
     )
 
-    calendar_filtered = calendar[calendar['_overlap'].notnull() & calendar['_dows_overlap']]
-    
-    # trim bounds to fit within daterange
-    calendar_filtered['start_date'] = calendar_filtered['_overlap'].apply(lambda dr: dr.start.datestring())
-    calendar_filtered['end_date'] = calendar_filtered['_overlap'].apply(lambda dr: dr.end.datestring())
+    calendar = calendar[calendar['_overlap'].notnull() & calendar['_dows_overlap']]
 
-    gtfs.update_table('calendar', calendar_filtered)
+    # trim bounds to fit within daterange
+    calendar['start_date'] = calendar['_overlap'].apply(lambda dr: dr.start.datestring())
+    calendar['end_date'] = calendar['_overlap'].apply(lambda dr: dr.end.datestring())
+
+    gtfs.update_table('calendar', calendar)
     remove_trips_with_nonexistent_calendars()
     
 
