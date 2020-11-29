@@ -1,0 +1,56 @@
+# config file for Average Headways utility
+
+# -------------------------------
+# ---- USER INPUT PARAMETERS ----
+# -------------------------------
+
+# GTFS File names
+#   - Name should include extension (i.e. "good_feed.zip")
+#   - IMPORTANT: These feeds need to be in the "data/" directory
+#   - Example: 
+#
+#     gtfs_feeds: 
+#       - good_feed.zip
+#       - another_good_feed.zip
+#
+
+gtfs_feeds:
+  - aampo-2019.zip
+  - cccxpress-or-us.zip
+  - linnshuttle-or-us.zip
+  # This feed has multiple issues, including containing csv files and missing 
+  # a required field (agency_name in agency.txt)
+  # - rvtd-or-us-RIDE.zip
+  # Unfortunately trimet is slow enough to require separate testing
+  # - trimet.zip
+  - albanytransit-or-us.zip
+  - josephinecounty-or-us-RIDE.zip
+  # LTD will currently fail because it uses calendar_dates for regular service 
+  # - ltd-or-us.zip
+  - tillamook-or-us.zip
+
+# Date for which average headways will be calculated
+#   - Format: 'YYYYMMDD'
+#   - Value should be quoted (single or double)
+#   - Example:
+#
+#     date: '20091102'
+#
+
+date: '20201201'
+
+# Time range to average headways over (at this time only one range may be provided)
+#   - Format: 'HH:MM:SS'
+#   - Value should be quoted (single or double)
+#   - Example:
+# 
+#     time_ranges:
+#       - start: '06:00:00'
+#         end: '09:00:00'
+#
+
+time_ranges:
+  - start: '06:00:00'
+    end: '09:00:00'
+  - start: '13:00:00'
+    end: '18:00:00'
