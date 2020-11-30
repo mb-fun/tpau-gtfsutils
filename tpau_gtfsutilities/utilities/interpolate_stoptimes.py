@@ -1,12 +1,6 @@
 import geopandas as gpd
 
 from .gtfsutility import GTFSUtility
-from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
-from tpau_gtfsutilities.gtfs.gtfsreader import GTFSReader
-
-from tpau_gtfsutilities.config.utilityconfig import utilityconfig
-from tpau_gtfsutilities.config.utilityoutput import utilityoutput
-
 from tpau_gtfsutilities.gtfs.methods.edit.interpolation import interpolate_stop_times
 
 class InterpolateStoptimes(GTFSUtility):

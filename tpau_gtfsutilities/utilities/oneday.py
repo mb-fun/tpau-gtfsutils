@@ -1,10 +1,4 @@
 from .gtfsutility import GTFSUtility
-from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
-from tpau_gtfsutilities.gtfs.gtfsreader import GTFSReader
-
-from tpau_gtfsutilities.config.utilityconfig import utilityconfig
-from tpau_gtfsutilities.config.utilityoutput import utilityoutput
-
 from tpau_gtfsutilities.gtfs.methods.edit.calendars import remove_exception_calendars
 from tpau_gtfsutilities.gtfs.methods.filters.subset import subset_entire_feed
 
@@ -14,4 +8,12 @@ class OneDay(GTFSUtility):
 
     def run_on_gtfs_singleton(self, settings):
         remove_exception_calendars()
-        subset_entire_feed(settings['date_range'], settings['time_range'])
+
+        time_range_defined = 'time_range' in settings.keys() \
+            and 'start' in settings['time_range'].keys() \
+            and 'end' in settings['time_range'].keys()
+
+        if time_range_defined:
+            subset_entire_feed(settings['date_range'], settings['time_range'])
+        else:
+            subset_entire_feed(settings['date_range'])

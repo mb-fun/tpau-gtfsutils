@@ -1,8 +1,5 @@
 from .gtfsutility import GTFSUtility
 
-from tpau_gtfsutilities.config.utilityconfig import utilityconfig
-from tpau_gtfsutilities.config.utilityoutput import utilityoutput
-
 from tpau_gtfsutilities.gtfs.methods.filters.date import filter_trips_by_date
 from tpau_gtfsutilities.gtfs.methods.filters.timerange import filter_single_trips_by_timerange
 from tpau_gtfsutilities.gtfs.methods.filters.timerange import filter_repeating_trips_by_timerange
@@ -14,7 +11,10 @@ class AverageHeadway(GTFSUtility):
 
     def run_on_gtfs_singleton(self, settings):
 
-        time_ranges_defined = settings['time_ranges'] and len(settings['time_ranges']) and settings['time_ranges'][0]['start']
+        time_ranges_defined = 'time_ranges' in settings.keys() \
+            and len(settings['time_ranges']) \
+            and 'start' in settings['time_ranges'][0].keys()
+
         if not time_ranges_defined:
             filter_trips_by_date(settings['date'])
             prune_unused_trips()
