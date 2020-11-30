@@ -45,7 +45,7 @@ date_range:
 #   - Example:
 # 
 #     time_range:
-#       - start: '06:00:00'
+#         start: '06:00:00'
 #         end: '09:00:00'
 #
 
