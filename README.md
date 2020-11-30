@@ -35,23 +35,14 @@
 ## Behavior
 
 ### Average Headways
-
-- Issues:
-  - Will fail if trips.txt does not include direction_id
   
 ### Interpolate Stoptimes
 
-- Notes:
-  - Will fail if shape dist travel is set incorrectly (i.e., stops on the same trip having the same shape_dist_traveled value)
-  
 ### Cluster Stops
 
 ### One Day
 
 ### Stop Visits
-
-- Issues:
-  - Will fail if date has no feed service
 
 ### GTFS Output Notes
 
@@ -61,9 +52,3 @@ GTFS output may include some minor unintentional changes to the data, such as:
 - Conversion to float -- Columns that have a mixure of integer and float values will have integers converted to floats (i.e. 0 will become 0.0)
 - Column reordering -- Columns that serve as IDs for a file (i.e. trip_id in trips.txt) may be brought to the front of the columns.
 - Quotation removal -- The utilities remove wrapping quotes for fields that do not otherwise contain quotations or commas. 
-
-### Known Issues (will be fixed)
-
-- Utilities currently can't run on feeds that use calendar_dates.txt to define regular service.
-- If a feed is filtered on a date range, calendars outside the range will be removed even if they are used in a service addition within the date range.
-- Input parameters should ideally be included in the output somewhere.
