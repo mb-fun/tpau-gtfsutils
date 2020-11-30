@@ -8,8 +8,6 @@ def prune_table_from_table_column(target, source, column, columns={}):
     # column arg is omitted if columns dict is used to use columns with different names, e.g:
     #   prune_table_from_table_column('transfers', 'stops', columns={'transfers': 'from_stop_id', 'stops': 'stop_id'})
 
-    # TODO handle missing optional tables
-
     if not gtfs.has_table(target): return
 
     target_df = gtfs.get_table(target, index=False)
@@ -38,10 +36,10 @@ def prune_unused_calendars():
 
 def prune_unused_stops():
     prune_stops_from_stop_times()
-    # prune_table_from_table_column('transfers', 'stops', columns={'transfers': 'from_stop_id', 'stops': 'stop_id'})
-    # prune_table_from_table_column('transfers', 'stops', columns={'transfers': 'to_stop_id', 'stops': 'stop_id'})
-    # prune_table_from_table_column('pathways', 'stops', columns={'pathways': 'from_stop_id', 'stops': 'stop_id'})
-    # prune_table_from_table_column('pathways', 'stops', columns={'pathways': 'to_stop_id', 'stops': 'stop_id'})
+    prune_table_from_table_column('transfers', 'stops', None, columns={'transfers': 'from_stop_id', 'stops': 'stop_id'})
+    prune_table_from_table_column('transfers', 'stops', None, columns={'transfers': 'to_stop_id', 'stops': 'stop_id'})
+    prune_table_from_table_column('pathways', 'stops', None, columns={'pathways': 'from_stop_id', 'stops': 'stop_id'})
+    prune_table_from_table_column('pathways', 'stops', None, columns={'pathways': 'to_stop_id', 'stops': 'stop_id'})
 
 def prune_stops_from_stop_times():
     stops = gtfs.get_table('stops', index=False)
@@ -64,9 +62,9 @@ def prune_stops_from_stop_times():
 
 def prune_unused_routes():
     prune_table_from_table_column('routes', 'trips', 'route_id')
-    # prune_table_from_table_column('fare_rules', 'routes', 'route_id')
+    prune_table_from_table_column('fare_rules', 'routes', 'route_id')
     # prune_table_from_table_column('attributions', 'routes', 'route_id')
 
 def prune_unused_shapes():
-    # prune_table_from_table_column('shapes', 'trips', 'shape_id')
+    prune_table_from_table_column('shapes', 'trips', 'shape_id')
     pass
