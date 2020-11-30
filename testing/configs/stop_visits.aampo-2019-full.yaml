@@ -37,8 +37,8 @@ polygon:
 #
 
 date_range: 
-  start: 20190724
-  end: 20190724
+  start: '20190724'
+  end: '20190724'
 
 # Time range subset feed by
 #   - Time format: 'HH:MM:SS'

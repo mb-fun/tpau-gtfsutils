@@ -38,8 +38,8 @@ polygon: albany_stops_filter.geojson
 #
 
 date_range: 
-  start: 20201201
-  end: 20201208
+  start: '20201201'
+  end: '20201208'
 
 # Time range subset feed by
 #   - Time format: 'HH:MM:SS'
