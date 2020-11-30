@@ -22,6 +22,7 @@ class StopVisits(GTFSUtility):
 
     def run_on_gtfs_singleton(self, settings):
         time_range_defined = 'time_range' in settings.keys() \
+            and not isinstance(settings['time_range'], str) \
             and 'start' in settings['time_range'].keys() \
             and 'end' in settings['time_range'].keys()
     

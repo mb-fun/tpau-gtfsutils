@@ -59,7 +59,7 @@ def get_clusters(radius):
 
     stops = gtfs_collection.get_combined_gtfs_table('stops')
 
-    stops_gdf = gpd.GeoDataFrame(stops, geometry=gpd.points_from_xy(stops['stop_lon'], stops['stop_lat']), crs={'init' :'epsg:4326'})
+    stops_gdf = gpd.GeoDataFrame(stops, geometry=gpd.points_from_xy(stops['stop_lon'], stops['stop_lat']), crs='epsg:4326')
     stops_gdf = stops_gdf.to_crs(epsg=2992)
      
     radius_in_feet = float(radius) * 5280
