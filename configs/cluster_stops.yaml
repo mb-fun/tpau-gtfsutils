@@ -4,9 +4,9 @@
 # ---- USER INPUT PARAMETERS ----
 # -------------------------------
 
-# GTFS File names
+# GTFS File names (Required)
 #   - Name should include extension (i.e. "good_feed.zip")
-#   - IMPORTANT: These feeds need to be in the "data/" directory
+#   - IMPORTANT: These feeds need to be in the input directory ("data/" by default)
 #   - Example: 
 #
 #     gtfs_feeds: 
@@ -16,32 +16,36 @@
 
 gtfs_feeds:
 
-# Date range to subset feed by
+# Date range to run utilty on (Required)
 #   - Date format: 'YYYYMMDD'
-#   - Value should be quoted (single or double)
+#   - Values should be quoted (single or double)
+#   - Dates are inclusive
+#   - For one day, use the same date for start and end
 #   - Example:
 #
 #     date_range: 
-#       start: '200201102'
-#       end: '200201107'
+#       start: '20201102'
+#       end: '20201107'
 #
 
-date_range:
+date_range: 
 
-# Time range subset feed by
-#   - Time format: 'HH:MM:SS'
+# Time range to run utility on (Optional)
+#   - Format: 'HH:MM:SS'
 #   - Value should be quoted (single or double)
+#   - Range should be defined by 'start' and 'end'
+#   - Time range is inclusive
 #   - Example:
 # 
 #     time_range:
-#         start: '06:00:00'
+#       - start: '06:00:00'
 #         end: '09:00:00'
 #
 
 time_range:
 
-# Cluster Radius
-#   - In miles
+# Cluster Radius (Required)
+#   - Radius (in miles) to cluster stops by
 #   - Example:
 #
 #     cluster_radius: .25
