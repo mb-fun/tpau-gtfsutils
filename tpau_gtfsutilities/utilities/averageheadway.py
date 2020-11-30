@@ -12,7 +12,7 @@ class AverageHeadway(GTFSUtility):
     def run_on_gtfs_singleton(self, settings):
 
         time_ranges_defined = 'time_ranges' in settings.keys() \
-            and not isinstance(settings['time_range'], str) \
+            and not isinstance(settings['time_ranges'], str) \
             and len(settings['time_ranges']) \
             and 'start' in settings['time_ranges'][0].keys()
 
