@@ -22,7 +22,14 @@ class ClusterStops(GTFSUtility):
         for feed in settings['gtfs_feeds']:
             self.load_feed_into_gtfs_singleton(feed)
 
-            subset_entire_feed(settings['date_range'], settings['time_range'])
+            time_range_defined = 'time_range' in settings.keys() \
+                and 'start' in settings['time_range'].keys() \
+                and 'end' in settings['time_range'].keys()
+
+            if time_range_defined:
+                subset_entire_feed(settings['date_range'], settings['time_range'])
+            else:
+                subset_entire_feed(settings['date_range'])
 
             feed_no_extension = feed[:-4]
             gtfs_collection.add_feed(gtfs.copy(), feed_no_extension)
