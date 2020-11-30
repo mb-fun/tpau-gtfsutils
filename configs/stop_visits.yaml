@@ -15,6 +15,14 @@
 #
 
 gtfs_feeds:
+  # http://oregon-gtfs.com/gtfs_data/benton-or-us/benton-or-us.zip
+  - benton-or-us.zip
+  # http://oregon-gtfs.com/gtfs_data/canbytransit-or-us/canbytransit-or-us.zip
+  - canbytransit-or-us.zip
+  # http://oregon-gtfs.com/gtfs_data/tillamook-or-us/tillamook-or-us.zip
+  - tillamook-or-us.zip
+  # http://oregon-gtfs.com/gtfs_data/albanytransit-or-us/albanytransit-or-us.zip
+  - albanytransit-or-us.zip
 
 # Polygon to filter stops on (Optional)
 #   - geojson or shapefile 
@@ -40,8 +48,8 @@ polygon:
 #
 
 date_range: 
-  start:
-  end:
+  start: '20201101'
+  end: '20201108'
 
 # Time range to run utility on (Optional)
 #   - Format: 'HH:MM:SS'
@@ -56,5 +64,5 @@ date_range:
 #
 
 time_range:
-    start:
-    end:
+    start: '09:00:00'
+    end: '17:00:00'

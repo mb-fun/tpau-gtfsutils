@@ -15,6 +15,11 @@
 #
 
 gtfs_feeds:
+  # http://oregon-gtfs.com/gtfs_data/albanytransit-or-us/albanytransit-or-us.zip
+  - albanytransit-or-us.zip
+  # http://oregon-gtfs.com/gtfs_data/canbytransit-or-us/canbytransit-or-us.zip
+  - canbytransit-or-us.zip
+
 
 # Date range to run utilty on (Required)
 #   - Date format: 'YYYYMMDD'
@@ -28,7 +33,9 @@ gtfs_feeds:
 #       end: '20201107'
 #
 
-date_range:
+date_range: 
+  start: '20201101'
+  end: '20201108'
 
 # Time range to run utility on (Optional)
 #   - Format: 'HH:MM:SS'
@@ -43,3 +50,5 @@ date_range:
 #
 
 time_range:
+    start: '09:00:00'
+    end: '17:00:00'
