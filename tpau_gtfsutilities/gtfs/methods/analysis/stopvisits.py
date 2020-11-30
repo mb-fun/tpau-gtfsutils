@@ -219,13 +219,13 @@ def get_stop_visit_counts(gtfs_override=None):
     gtfs = gtfs_override if gtfs_override else gtfs_singleton
 
     trip_scheduled_stops = gtfs.get_table('stop_times')[['trip_id', 'stop_id', 'arrival_time', 'departure_time']]
-    trip_stop_pairs = trip_scheduled_stops[['trip_id', 'stop_id']]
+    trip_scheduled_stops = trip_scheduled_stops[['trip_id', 'stop_id']]
 
     has_frequencies = gtfs.has_table('frequencies')
     if has_frequencies:
         unwrapped_repeating_trips = triphelpers.get_unwrapped_repeating_trips(gtfs_override=gtfs)
         repeating_trip_counts = unwrapped_repeating_trips['trip_id'].value_counts().rename('trip_counts')
-        trip_stop_pairs = trip_stop_pairs.merge( \
+        trip_scheduled_stops = trip_scheduled_stops.merge( \
             repeating_trip_counts.to_frame(), \
             how='left', \
             left_on='trip_id', \
@@ -233,21 +233,21 @@ def get_stop_visit_counts(gtfs_override=None):
         ).fillna(1)
     else:
         # single trips have a trip_count of 1
-        trip_stop_pairs['trip_counts'] = 1
+        trip_scheduled_stops['trip_counts'] = 1
 
     trip_service_counts = get_trip_service_counts(gtfs_override=gtfs)
     
-    trip_stop_pairs_with_service = trip_stop_pairs.merge( \
+    trip_scheduled_stops_with_service = trip_scheduled_stops.merge( \
         trip_service_counts.rename('active_days').to_frame(), \
         how='left', \
         left_on='trip_id', \
         right_index=True \
     )
 
-    trip_stop_pairs_with_service['service_trips'] = \
-        trip_stop_pairs_with_service['trip_counts'] * trip_stop_pairs_with_service['active_days']
+    trip_scheduled_stops_with_service['service_trips'] = \
+        trip_scheduled_stops_with_service['trip_counts'] * trip_scheduled_stops_with_service['active_days']
     
-    stop_service_counts = trip_stop_pairs_with_service[['stop_id', 'service_trips']].groupby(['stop_id']).sum()
+    stop_service_counts = trip_scheduled_stops_with_service[['stop_id', 'service_trips']].groupby(['stop_id']).sum()
 
     return stop_service_counts.rename(columns={'service_trips':'visit_counts'})
 
