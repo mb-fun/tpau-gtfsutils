@@ -23,6 +23,7 @@ class ClusterStops(GTFSUtility):
             self.load_feed_into_gtfs_singleton(feed)
 
             time_range_defined = 'time_range' in settings.keys() \
+                and not isinstance(settings['time_range'], str) \
                 and 'start' in settings['time_range'].keys() \
                 and 'end' in settings['time_range'].keys()
 
