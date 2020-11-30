@@ -15,6 +15,10 @@
 #
 
 gtfs_feeds:
+  # http://oregon-gtfs.com/gtfs_data/albanytransit-or-us/albanytransit-or-us.zip
+  - albanytransit-or-us.zip
+  # http://oregon-gtfs.com/gtfs_data/linnshuttle-or-us/linnshuttle-or-us.zip
+  - linnshuttle-or-us.zip
 
 # Date range to subset feed by
 #   - Date format: 'YYYYMMDD'
@@ -26,7 +30,9 @@ gtfs_feeds:
 #       end: '200201107'
 #
 
-date_range:
+date_range: 
+  start: '20201101'
+  end: '20201108'
 
 # Time range subset feed by
 #   - Time format: 'HH:MM:SS'
@@ -47,4 +53,4 @@ time_range:
 #     cluster_radius: .25
 #
 
-cluster_radius:
+cluster_radius: .1

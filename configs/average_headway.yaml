@@ -15,6 +15,12 @@
 #
 
 gtfs_feeds:
+  # http://oregon-gtfs.com/gtfs_data/benton-or-us/benton-or-us.zip
+  - benton-or-us.zip
+  # http://oregon-gtfs.com/gtfs_data/canbytransit-or-us/canbytransit-or-us.zip
+  - canbytransit-or-us.zip
+  # http://oregon-gtfs.com/gtfs_data/tillamook-or-us/tillamook-or-us.zip
+  - tillamook-or-us.zip
 
 # Date for which average headways will be calculated
 #   - Format: 'YYYYMMDD'
@@ -24,7 +30,7 @@ gtfs_feeds:
 #     date: '20091102'
 #
 
-date:
+date: '20201208'
 
 # Time range to average headways over (at this time only one range may be provided)
 #   - Format: 'HH:MM:SS'
@@ -37,3 +43,5 @@ date:
 #
 
 time_ranges:
+  - start: '09:00:00'
+    end: '17:00:00'
