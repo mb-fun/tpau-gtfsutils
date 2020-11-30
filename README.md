@@ -34,6 +34,16 @@
 
 ## Behavior
 
+### Average Headways
+  
+### Interpolate Stoptimes
+
+### Cluster Stops
+
+### One Day
+
+### Stop Visits
+
 ### GTFS Output Notes
 
 GTFS output may include some minor unintentional changes to the data, such as:
@@ -42,8 +52,3 @@ GTFS output may include some minor unintentional changes to the data, such as:
 - Conversion to float -- Columns that have a mixure of integer and float values will have integers converted to floats (i.e. 0 will become 0.0)
 - Column reordering -- Columns that serve as IDs for a file (i.e. trip_id in trips.txt) may be brought to the front of the columns.
 - Quotation removal -- The utilities remove wrapping quotes for fields that do not otherwise contain quotations or commas. 
-
-### Known Issues (will be fixed)
-
-- Utilities currently can't run on feeds that use calendar_dates.txt to define regular service
-- If a feed is filtered on a date range, calendars outside the range will be removed even if they are used in a service addition within the date range.
