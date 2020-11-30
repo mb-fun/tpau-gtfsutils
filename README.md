@@ -35,14 +35,37 @@
 ## Behavior
 
 ### Average Headways
+
+Outputs csv reports with average headway minutes for each distinct Route/Direction pair within the date and time ranges provided.
+
+Report csv headers:
+`route_id,direction_id,agency_id,route_long_name,agency_name,date,start_time,end_time,average_headway_minutes,trip_start_times`
   
 ### Interpolate Stoptimes
 
+Outputs GTFS feeds with missing stop arrival/departure times filled in with estimations based on shapes/shape_dist_traveled.
+
+Requirements:
+- shapes.txt is present 
+- trips.txt includes shape_dist_traveled
+- Feed does not use flex areas
+
 ### Cluster Stops
+
+Outputs GTFS feeds with stops clustered by radius (prioritizing rail/lift/tram stops, then prioritizing by stop visits) to new stops, as well as a Stop Visits report for each new feed.
+
+New stops used across feeds will share stop_id, location and other stop information.
 
 ### One Day
 
+Outputs GTFS feed with service reduced to input date and timeranges and with exceptions removed. Entities made unused by the date/time filtering (i.e. routes, trips, stops, calendars) are removed from the feed.
+
 ### Stop Visits
+
+Outputs csv report of stop visits within provided date and time range, for each Agency/Stop pair in feed. Stops can be filtered by shapefile or geojson if provided. 
+
+Report csv headers:
+`agency_id,agency_name,stop_id,stop_name,stop_lat,stop_lon,visit_counts,boardings,alightings`
 
 ### GTFS Output Notes
 
