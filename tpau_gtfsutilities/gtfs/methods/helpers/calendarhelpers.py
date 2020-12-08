@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs as gtfssingleton
-from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDateRange, GTFSDateRange
+from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDateRange, GTFSDateRange, GTFSDate
 
 class GTFSServiceCalendar:
     daterange = None

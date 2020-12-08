@@ -15,14 +15,22 @@ def filter_calendars_by_daterange(daterange):
         filter_daterange.overlap(dr) \
     )
 
-
-    # remove calendar entries that don't overlap DOWs 
+    # we want to remove calendar entries that don't overlap DOWs 
     calendar['_dows_overlap'] = calendar.apply(lambda row: \
         True in (row[dow] for dow in filter_daterange.days_of_week()),
         axis=1
     )
+    
+    # we want to keep calendar entries that are used in overlapping exceptions 
+    if gtfs.has_table('calendar_dates'):
+        calendar_dates = gtfs.get_table('calendar_dates')
+        calendar_dates['_date_overlap'] = calendar_dates.apply(lambda row: filter_daterange.includes(row['date']), axis=1)
+        calendar_dates = calendar_dates[calendar_dates['_date_overlap']]
+        calendar['_exception_overlap'] = calendar.index.to_series().isin(calendar_dates['service_id'])
+    else:
+        calendar['_exception_overlap'] = False
 
-    calendar = calendar[calendar['_overlap'].notnull() & calendar['_dows_overlap']]
+    calendar = calendar[(calendar['_overlap'].notnull() & calendar['_dows_overlap']) | calendar['_exception_overlap']]
 
     # trim bounds to fit within daterange
     calendar['start_date'] = calendar['_overlap'].apply(lambda dr: dr.start.datestring())
