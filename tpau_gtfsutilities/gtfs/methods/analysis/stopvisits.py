@@ -171,8 +171,6 @@ def get_multi_agency_stop_visit_counts(gtfs_override=None):
     trip_scheduled_stops = gtfs.get_table('stop_times')[['trip_id', 'stop_id', 'arrival_time', 'departure_time']]
     trip_stop_pairs = trip_scheduled_stops[['trip_id', 'stop_id']]
 
-    debug = trip_stop_pairs.drop_duplicates().set_index(['trip_id', 'stop_id'])
-
     trips_extended = triphelpers.get_trips_extended(gtfs_override=gtfs)
     agency_trip_stops = trip_stop_pairs.merge( \
         trips_extended['agency_id'],
@@ -180,7 +178,6 @@ def get_multi_agency_stop_visit_counts(gtfs_override=None):
         left_on='trip_id',
         right_index=True,
     )
-
 
     has_frequencies = gtfs.has_table('frequencies')
     if has_frequencies:
@@ -197,7 +194,7 @@ def get_multi_agency_stop_visit_counts(gtfs_override=None):
         agency_trip_stops['trip_counts'] = 1
 
     trip_service_counts = get_trip_service_counts(gtfs_override=gtfs)
-    
+
     agency_trip_stops_with_service = agency_trip_stops.merge( \
         trip_service_counts.rename('active_days').to_frame(), \
         how='left', \
@@ -246,7 +243,7 @@ def get_stop_visit_counts(gtfs_override=None):
 
     trip_scheduled_stops_with_service['service_trips'] = \
         trip_scheduled_stops_with_service['trip_counts'] * trip_scheduled_stops_with_service['active_days']
-    
+
     stop_service_counts = trip_scheduled_stops_with_service[['stop_id', 'service_trips']].groupby(['stop_id']).sum()
 
     return stop_service_counts.rename(columns={'service_trips':'visit_counts'})
@@ -259,6 +256,7 @@ def get_trip_service_counts(gtfs_override=None):
 
     trips_extended = triphelpers.get_trips_extended(gtfs_override=gtfs)
     calendar = gtfs.get_table('calendar').reset_index()
+
 
     calendar_active_days = calendar['service_id'].to_frame().reset_index()
     
