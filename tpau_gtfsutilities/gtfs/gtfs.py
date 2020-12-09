@@ -5,17 +5,10 @@ from .gtfsreader import GTFSReader
 from tpau_gtfsutilities.config.utilityconfig import utilityconfig
 from tpau_gtfsutilities.config.utilityoutput import utilityoutput
 from tpau_gtfsutilities.gtfs.process import preprocess
-from .properties import REQUIRED_TABLES
+from .properties import REQUIRED_TABLES, TABLE_INDECES, NUMERIC_DTYPES
 from .gtfserrors import MissingRequiredFileError
 
-table_index = { \
-    'stops': ['stop_id'], \
-    'routes': ['route_id'], \
-    'trips': ['trip_id'], \
-    'calendar': ['service_id'], \
-    'fare_attributes': ['fare_id'], \
-    'shapes': ['shape_id'] \
-}
+
 
 class GTFS:
     _gtfsreader = None
@@ -25,11 +18,24 @@ class GTFS:
     def load_feed(self, gtfsreader):
         gtfsreader.unpack_csvs()
 
+        def get_dtypes_dict(columns):
+            dtypes = {}
+            for col in columns:
+                if col in NUMERIC_DTYPES.keys():
+                    dtypes[col] = NUMERIC_DTYPES[col]
+                else:
+                    dtypes[col] = 'str'
+            return dtypes
+
         for tablename in gtfsreader.contents:
             csv = os.path.join(utilityconfig.get_input_dir(), tablename + '.csv')
-            df = pd.read_csv(csv)
-            if (tablename in table_index.keys()):
-                df = df.set_index(table_index[tablename])
+            columns = gtfsreader.contents[tablename]
+
+            dtype = get_dtypes_dict(columns)
+
+            df = pd.read_csv(csv, dtype=dtype)
+            if (tablename in TABLE_INDECES.keys()):
+                df = df.set_index(TABLE_INDECES[tablename])
             self._tables[tablename] = df
             self._original_tables[tablename] = df.copy()
 
@@ -41,7 +47,7 @@ class GTFS:
     def write_feed(self, feedname):
         unindexed_tables = {}
         for tablename in self._tables.keys():
-            has_index = tablename in table_index.keys()
+            has_index = tablename in TABLE_INDECES.keys()
             if has_index:
                 unindexed_tables[tablename] = self._tables[tablename].reset_index()
             else:
@@ -74,8 +80,8 @@ class GTFS:
         if (not self.has_table(tablename)):
             return []
         columns = self._tables[tablename].columns.tolist()
-        if (not index) and (tablename in table_index.keys()):
-            columns = [col for col in columns if col not in table_index[tablename]]
+        if (not index) and (tablename in TABLE_INDECES.keys()):
+            columns = [col for col in columns if col not in TABLE_INDECES[tablename]]
         return columns
 
     def update_table(self, tablename, df, allow_column_changes=False):
@@ -85,8 +91,8 @@ class GTFS:
             # self._gtfsreader.update_table_columns(tablename, columns_with_index)
         
         # make sure index is correctly set
-        if (tablename in table_index.keys()):
-            index = table_index[tablename].copy()
+        if (tablename in TABLE_INDECES.keys()):
+            index = TABLE_INDECES[tablename].copy()
             index.sort()
             df_index = df.index.names.copy()
             df_index.sort()
