@@ -27,7 +27,7 @@ class StopVisits(GTFSUtility):
             and 'end' in settings['time_range'].keys()
     
         if time_range_defined:
-            subset_entire_feed(settings['date_range'], settings['time_range'])
+            subset_entire_feed(settings['date_range'], settings['time_range'], trim_trips=True)
         else:
             subset_entire_feed(settings['date_range'])
 

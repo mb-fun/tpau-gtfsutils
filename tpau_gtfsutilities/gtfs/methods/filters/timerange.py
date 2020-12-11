@@ -1,11 +1,23 @@
 import pandas as pd
+import numpy as np
 from tpau_gtfsutilities.gtfs.methods.helpers import triphelpers
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
 
 from tpau_gtfsutilities.helpers.datetimehelpers import seconds_since_zero
 
-def time_range_in_range(start_time_a, end_time_a, start_time_b, end_time_b):
-    return (start_time_b <= start_time_a) & (end_time_a <= end_time_b)
+def time_range_in_range(start_time_a, end_time_a, start_time_b, end_time_b, wholly_within=True):
+    # If wholly_within=True, returns True if range a is completely within range b (inclusive)
+    # otherwise returns True if range a is partially within range b (inclusive)
+    if wholly_within:
+        return (start_time_b <= start_time_a) & (end_time_a <= end_time_b)
+    return (start_time_b <= start_time_a) | (end_time_a <= end_time_b)
+
+def time_in_range(time, range_start, range_end):
+    return (range_start <= time) & (time <= range_end)
+
+def service_in_range(arrival, departure, range_start, range_end):
+    return ((arrival is not None) & time_in_range(arrival, range_start, range_end)) \
+        | ((departure is not None) & time_in_range(departure, range_start, range_end))
 
 def get_long_form_unwrapped_frequencies_inrange_df(time_range):
 
@@ -158,7 +170,7 @@ def filter_repeating_trips_by_timerange(time_range):
     gtfs.update_table('frequencies', filtered_frequencies_df)
 
 
-def get_inrange(df, start_col, end_col, time_range):
+def get_inrange(df, start_col, end_col, time_range, wholly_within=True):
     # returns df with df.index, and an "inrange" column
 
     df_bounds = df[[start_col, end_col]]
@@ -166,11 +178,12 @@ def get_inrange(df, start_col, end_col, time_range):
     start = time_range['start']
     end = time_range['end']
 
-    kwargs = {'inrange' : lambda x: time_range_in_range( \
-        df_bounds[start_col].transform(seconds_since_zero), \
-        df_bounds[end_col].transform(seconds_since_zero), \
+    kwargs = {'inrange' : lambda df: time_range_in_range( \
+        df[start_col].transform(seconds_since_zero), \
+        df[end_col].transform(seconds_since_zero), \
         seconds_since_zero(start), \
-        seconds_since_zero(end) \
+        seconds_since_zero(end), \
+        wholly_within=wholly_within \
     )}
     df_bounds = df_bounds.assign(**kwargs)
 
@@ -179,17 +192,53 @@ def get_inrange(df, start_col, end_col, time_range):
     return inrange
     
 
-def filter_single_trips_by_timerange(timerange):
+def filter_single_trips_by_timerange(timerange, trim_trips=False):
     # filters trips by time ranges provided in config
-    # trips will only be kept if they start and end within the time range
+    # IMPORTANT: If trim_trips is True, trips partially within range will have out-of-range
+    # stops AND stops without arrival and departure times removed. This is to avoid inferring stop 
+    # service time when not supplied, and if used it is recommended to clean data beforehand by interpolating stops
 
     trips_extended = triphelpers.get_trips_extended()
 
+    # If trim_trips is False, we only want to keep trips that are completely within time range 
+    # If trim_trips is True, we want to keep partially-in-range trips to we can trip them in stop_times
+    wholly_within = not trim_trips
+
     # add range information
-    trips_extended['inrange'] = get_inrange(trips_extended, 'start_time', 'end_time', timerange)
+    trips_extended['inrange'] = get_inrange(trips_extended, 'start_time', 'end_time', timerange, wholly_within=wholly_within)
 
     # filter trips and write to table
     trips_filtered_df = trips_extended[ \
         (trips_extended['inrange'] == True) | trips_extended['is_repeating'] == True]
 
     gtfs.update_table('trips', trips_filtered_df)
+
+    # filter stop_times if trim_trips is True
+    if trim_trips:
+        stop_times = gtfs.get_table('stop_times')
+        stop_times = stop_times.merge(
+            trips_extended['is_repeating'].reset_index(),
+            how='left',
+            left_on='trip_id',
+            right_on='trip_id'
+        )
+
+        start = timerange['start']
+        end = timerange['end']
+
+        def safe_seconds_since_zero(x):
+            nan = type(x) == float and np.isnan(x)
+            ssz = seconds_since_zero(x) if not nan else None
+            return ssz
+
+        # IMPORTANT: to avoid inferring stop service time when not supplied, this will remove
+        # all stops outside of range AND all stops without stop times. 
+        kwargs = {'inrange' : lambda df: service_in_range(
+            df['arrival_time'].apply(safe_seconds_since_zero),
+            df['departure_time'].apply(safe_seconds_since_zero),
+            seconds_since_zero(start),
+            seconds_since_zero(end)
+        )}
+        stop_times = stop_times.assign(**kwargs)
+        stop_times = stop_times[(stop_times['inrange'] == True) | (stop_times['is_repeating'] == True)]
+        gtfs.update_table('stop_times', stop_times)
