@@ -154,7 +154,7 @@ def get_unwrapped_repeating_trips(gtfs_override=None):
     frequencies.rename(columns={'start_time': 'frequency_start', 'end_time': 'frequency_end' }, inplace=True)
 
     # expand into row per each occurring trip
-    frequencies['trip_order'] = np.floor( \
+    frequencies['trip_order'] = np.ceil( \
             (frequencies['frequency_end'].transform(seconds_since_zero) - frequencies['frequency_start'].transform(seconds_since_zero)) \
             / frequencies['headway_secs'].transform(int) \
         ).transform(lambda x: list(range(int(x))))
