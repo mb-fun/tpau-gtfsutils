@@ -28,3 +28,13 @@ NUMERIC_DTYPES = {
     'shape_pt_lon': 'float',
     'headway_secs': 'int',
 }
+
+DOWS = [
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
+]

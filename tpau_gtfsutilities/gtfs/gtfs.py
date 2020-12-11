@@ -5,7 +5,7 @@ from .gtfsreader import GTFSReader
 from tpau_gtfsutilities.config.utilityconfig import utilityconfig
 from tpau_gtfsutilities.config.utilityoutput import utilityoutput
 from tpau_gtfsutilities.gtfs.process import preprocess
-from .properties import REQUIRED_TABLES, TABLE_INDECES, NUMERIC_DTYPES
+from .properties import REQUIRED_TABLES, TABLE_INDECES, NUMERIC_DTYPES, DOWS
 from .gtfserrors import MissingRequiredFileError
 
 
@@ -115,9 +115,17 @@ class GTFS:
     def is_multiagency(self):
         return self.get_table('agency')['agency_name'].size > 1
 
-    def only_uses_calendar_dates(self):
+    def defines_service_in_calendar_dates(self):
         # Returns true if the feed defines all service using calendar_dates
-        return self.has_table('calendar')
+        if (not self.has_table('calendar')):
+            return True
+
+        calendars_dows = self.get_table('calendar')[DOWS]
+        has_any_service = calendars_dows.any(axis=None)
+
+        print('Annie F 12-08-2020 has_any_service: %s', has_any_service)
+
+        return has_any_service
 
     def run_function_on_all_tables(self, func):
         # func should be a function that accepts a df

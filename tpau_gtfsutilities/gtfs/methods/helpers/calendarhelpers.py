@@ -4,6 +4,7 @@ import numpy as np
 
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs as gtfssingleton
 from tpau_gtfsutilities.gtfs.gtfsenums import GTFSBool, GTFSExceptionType
+from tpau_gtfsutilities.gtfs.properties import DOWS
 from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDateRange, GTFSDateRange, GTFSDate
 
 class GTFSServiceCalendar:
@@ -22,9 +23,7 @@ class GTFSServiceCalendar:
         self.daterange = GTFSDateRange(calendar_row.loc['start_date'], calendar_row.loc['end_date'])
 
         # dows
-        dow_list = ['monday', 'tuesday', 'wednesday', 'thursday', \
-            'friday', 'saturday', 'sunday']
-        for day in dow_list:
+        for day in DOWS:
             self.dows[day] = (calendar_row.loc[day] == GTFSBool.TRUE)
 
         # exceptions
