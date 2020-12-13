@@ -1,4 +1,12 @@
+import pandas as pd
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
+
+def prune_feed():
+    prune_unused_calendars()
+    prune_unused_trips()
+    prune_unused_stops()
+    prune_unused_routes()
+    prune_unused_shapes()
 
 def prune_table_from_table_column(target, source, column, columns={}):
     # remove rows from target if column value not present in same column of source,  e.g.:
@@ -11,9 +19,34 @@ def prune_table_from_table_column(target, source, column, columns={}):
     if not gtfs.has_table(target): return
 
     target_df = gtfs.get_table(target, index=False)
-    source_df = gtfs.get_table(source, index=False)
-
     target_col = column if not columns else columns[target]
+
+    if isinstance(source, list):
+        # make source columns consistent before concat
+        # new col name doesn't matter as long as its unique within table
+        source_dfs = {}
+        for tablename in source:
+            if gtfs.has_table(tablename):
+                source_dfs[tablename] = gtfs.get_table(tablename)
+
+        if columns:
+            new_name = 'source_col'
+            for tablename in source_dfs.keys():
+                s_df = source_dfs[tablename]
+                col_rename = {}
+                col_rename[columns[tablename]] = new_name
+                s_df = s_df.rename(columns=col_rename)
+                columns[tablename] = new_name
+        
+        source_df = pd.concat( \
+            list(source_dfs.values()),
+            axis=0,
+            ignore_index=True
+        )
+    else:
+        if not gtfs.has_table(source): return
+        source_df = gtfs.get_table(source, index=False)
+
     source_col = column if not columns else columns[source]
 
     target_pruned = target_df[target_df[target_col].isin(source_df[source_col])]
@@ -27,12 +60,11 @@ def prune_unused_trips():
     # prune_table_from_table_column('attributions', 'trips', 'trip_id')
 
 def prune_unused_calendars():
-    # 'alternate' mode (see http://gtfs.org/reference/static/#calendar_datestxt)
-    if gtfs.has_table('calendar_dates') and not gtfs.has_table('calendar'):
-        prune_table_from_table_column('calendar_dates', 'trips', 'service_id') 
-    else:
-        prune_table_from_table_column('calendar', 'trips', 'service_id') 
-        prune_table_from_table_column('calendar_dates', 'calendar', 'service_id') 
+    prune_table_from_table_column('calendar', 'trips', 'service_id') 
+    # keep calendar_date rows if service_id in calendar.txt OR trips.txt
+    # exception-only calendars may not exist in calendar.txt
+    prune_table_from_table_column('calendar_dates', ['calendar', 'trips'], 'service_id') 
+
 
 def prune_unused_stops():
     prune_stops_from_stop_times()

@@ -70,14 +70,16 @@ class GTFS:
 
         return table.copy()
 
-    def has_table(self, tablename):
+    def has_table(self, tablename, check_empty=True):
+        if check_empty:
+            return tablename in self._tables.keys() and not self.get_table(tablename).empty
         return tablename in self._tables.keys()
 
     def table_has_column(self, tablename, column):
         return column in self.get_columns(tablename)
 
     def get_columns(self, tablename, index=True):
-        if (not self.has_table(tablename)):
+        if (not self.has_table(tablename, check_empty=False)):
             return []
         columns = self._tables[tablename].columns.tolist()
         if (not index) and (tablename in TABLE_INDECES.keys()):
@@ -122,8 +124,6 @@ class GTFS:
 
         calendars_dows = self.get_table('calendar')[DOWS]
         has_any_service = calendars_dows.any(axis=None)
-
-        print('Annie F 12-08-2020 has_any_service: %s', has_any_service)
 
         return has_any_service
 

@@ -1,5 +1,6 @@
 import numpy as np
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
+from tpau_gtfsutilities.gtfs.gtfsenums import GTFSBool
 from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDateRange
 from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDate
 
@@ -17,7 +18,7 @@ def filter_calendars_by_daterange(daterange):
 
     # we want to remove calendar entries that don't overlap DOWs 
     calendar['_dows_overlap'] = calendar.apply(lambda row: \
-        True in (row[dow] for dow in filter_daterange.days_of_week()),
+        GTFSBool.TRUE in (row[dow] for dow in filter_daterange.days_of_week()),
         axis=1
     )
     
@@ -56,9 +57,14 @@ def filter_calendar_dates_by_daterange(daterange):
 
 def remove_trips_with_nonexistent_calendars():
     calendar = gtfs.get_table('calendar', index=False)
-    trips = gtfs.get_table('trips')
     
+    trips = gtfs.get_table('trips')
     trips_filtered = trips[trips['service_id'].isin(calendar['service_id'])]
+
+    if (gtfs.has_table('frequencies')):
+        frequencies = gtfs.get_table('frequencies')
+        frequencies_filtered = frequencies[frequencies['trip_id'].isin(trips_filtered.index.to_series())]
+        gtfs.update_table('frequencies', frequencies_filtered)
 
     gtfs.update_table('trips', trips_filtered)
 

@@ -7,4 +7,4 @@ class GTFSExceptionType:
 # This is silly, but allows an easy change to int or bool values if needed later
 class GTFSBool:
     TRUE = '1'
-    FALSE = '2'
+    FALSE = '0'
