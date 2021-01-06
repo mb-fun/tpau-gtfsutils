@@ -94,14 +94,15 @@ def filter_repeating_trips_by_timerange(time_range, trim_trips=False):
             right_on='trip_id'
         )
         partial_trips_rows = partial_trips_rows.drop(columns=['trip_id']).rename(columns={ 'new_trip_id': 'trip_id' })
+
+        # now that new partial trips have been created, we can remove trips that were partially within
+        # the timerange but not wholly within
+        trips_filtered_df = trips_df[~trips_df['trip_id'].isin(trips_not_in_any_range_whole.index.to_series())]
+
         trips_filtered_df = pd.concat(
             [trips_filtered_df, partial_trips_rows],
             axis=0
         )
-
-        # now that new partial trips have been added, we can remove trips that were partially within
-        # the timerange but not wholly within
-        trips_filtered_df = trips_df[~trips_df['trip_id'].isin(trips_not_in_any_range_whole.index.to_series())]
 
         # add new rows in range into stoptimes for new trips
         stop_times = gtfs.get_table('stop_times')
@@ -121,9 +122,8 @@ def filter_repeating_trips_by_timerange(time_range, trim_trips=False):
             left_on='trip_id',
             right_on='trip_id'
         )
-
         def safe_transpose(val, diff_secs):
-            isnan = type(val) == float and np.isnan(val)
+            isnan = (type(val) == str and val == '') or (type(val) == float and np.isnan(val))
             if isnan: return np.nan
             transpose_secs = seconds_since_zero(val) + diff_secs
             return seconds_to_military(transpose_secs)
@@ -166,7 +166,7 @@ def filter_repeating_trips_by_timerange(time_range, trim_trips=False):
         )
 
         # remove original partial trips from trips and stoptimes
-        stop_times_updated = stop_times_updated[~stop_times_updated['trip_id'].isin(trips_filtered_df['trip_id'])]
+        stop_times_updated = stop_times_updated[stop_times_updated['trip_id'].isin(trips_filtered_df['trip_id'])]
         stop_times_updated = stop_times_updated.sort_values(['trip_id', 'stop_sequence'])
         gtfs.update_table('stop_times', stop_times_updated)
 

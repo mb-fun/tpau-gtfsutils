@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 
 from .gtfsreader import GTFSReader
@@ -7,13 +8,30 @@ from tpau_gtfsutilities.config.utilityoutput import utilityoutput
 from tpau_gtfsutilities.gtfs.process import preprocess
 from .properties import REQUIRED_TABLES, TABLE_INDECES, NUMERIC_DTYPES, DOWS
 from .gtfserrors import MissingRequiredFileError
+from .tables.calendar_dates import CalendarDates
+from .tables.calendar import Calendar
+from .tables.fare_attributes import FareAttributes
+from .tables.routes import Routes
+from .tables.shapes import Shapes
+from .tables.stops import Stops
+from .tables.stop_times import StopTimes
+from .tables.trips import Trips
+from .tables.gtfstable import GTFSTable
 
-
+table_classes = {
+    'calendar_dates': CalendarDates,
+    'calendar': Calendar,
+    'fare_attributes': FareAttributes,
+    'routes': Routes,
+    'shapes': Shapes,
+    'stops': Stops,
+    'stop_times': StopTimes,
+    'trips': Trips
+}
 
 class GTFS:
     _gtfsreader = None
-    _tables = {} # collection of GTFS dataframes
-    _original_tables = {} # collection of GTFS dataframes as inputted
+    _tables = {} # collection of GTFSTables
 
     def load_feed(self, gtfsreader):
         gtfsreader.unpack_csvs()
@@ -31,13 +49,11 @@ class GTFS:
             csv = os.path.join(utilityconfig.get_input_dir(), tablename + '.csv')
             columns = gtfsreader.contents[tablename]
 
-            dtype = get_dtypes_dict(columns)
+            table_class = table_classes[tablename] \
+                if tablename in table_classes.keys() \
+                else GTFSTable
 
-            df = pd.read_csv(csv, dtype=dtype)
-            if (tablename in TABLE_INDECES.keys()):
-                df = df.set_index(TABLE_INDECES[tablename])
-            self._tables[tablename] = df
-            self._original_tables[tablename] = df.copy()
+            self._tables[tablename] = table_class(csv, dtype=get_dtypes_dict(columns))
 
         gtfsreader.cleanup_gtfs_files_in_data_dir()
 
@@ -45,30 +61,23 @@ class GTFS:
         preprocess.remove_all_wrapping_quotations_in_gtfs(self)
 
     def write_feed(self, feedname):
-        unindexed_tables = {}
+        tables = {}
         for tablename in self._tables.keys():
-            has_index = tablename in TABLE_INDECES.keys()
-            if has_index:
-                unindexed_tables[tablename] = self._tables[tablename].reset_index()
-            else:
-                unindexed_tables[tablename] = self._tables[tablename]
-        utilityoutput.write_to_zip(unindexed_tables, feedname)
+            table = self.get_table(tablename, index=False) 
+            tables[tablename] = table[self.get_columns(tablename, index=True)]
+        utilityoutput.write_to_zip(tables, feedname)
 
     def get_table(self, tablename, index=True, original=False):
         if tablename not in self._tables.keys():
-            if tablename in REQUIRED_TABLES:
-                raise MissingRequiredFileError(tablename)
             return pd.DataFrame()
-        if original:
-            tabledict = self._original_tables
-        else:
-            tabledict = self._tables
+        
+        table = self._tables[tablename]
 
-        table = tabledict[tablename]
-        if not index:
-            table = table.reset_index()
+        df = table.get_df(original=original)
+        if not index and len(table.index):
+            df = df.reset_index()
 
-        return table.copy()
+        return df.copy()
 
     def has_table(self, tablename, check_empty=True):
         if check_empty:
@@ -78,30 +87,91 @@ class GTFS:
     def table_has_column(self, tablename, column):
         return column in self.get_columns(tablename)
 
-    def get_columns(self, tablename, index=True):
+    def get_columns(self, tablename, index=False):
         if (not self.has_table(tablename, check_empty=False)):
             return []
-        columns = self._tables[tablename].columns.tolist()
-        if (not index) and (tablename in TABLE_INDECES.keys()):
-            columns = [col for col in columns if col not in TABLE_INDECES[tablename]]
-        return columns
+        return self._tables[tablename].get_columns(index=index)
 
-    def update_table(self, tablename, df, allow_column_changes=False):
-        columns = self.get_columns(tablename, index=False)
-        if allow_column_changes:
-            columns_with_index = list(set(df.columns.tolist() + df.index.names))
-            # self._gtfsreader.update_table_columns(tablename, columns_with_index)
-        
-        # make sure index is correctly set
-        if (tablename in TABLE_INDECES.keys()):
-            index = TABLE_INDECES[tablename].copy()
-            index.sort()
-            df_index = df.index.names.copy()
-            df_index.sort()
-            if not index == df_index:
-                df = df.set_index(index)
+    def update_table(self, tablename, df, cascade=True, exclude_tables=None):
+        if exclude_tables is None: 
+            exclude_tables = []
+        if not self.has_table(tablename):
+            return
+        table = self._tables[tablename]
+        table.update(df)
 
-        self._tables[tablename] = df[columns]
+        if cascade:
+            self.update_downstream_tables(tablename, exclude_tables)
+            self.update_upstream_tables(tablename, exclude_tables)
+
+    def update_downstream_tables(self, tablename, exclude_tables=None):
+        # removes downstream references that no longer exist
+        if exclude_tables is None: 
+            exclude_tables = []
+
+        table = self._tables[tablename]
+        original_df = table.get_df().copy()
+
+        for col in table.downstream_columns.keys():
+            downstream_obj = table.downstream_columns[col]
+            
+            # if multiple downstream tables (i.e. calendar and calendar_dates for trips),
+            # supply all tables to prune function
+            for ref in downstream_obj['references']:
+                columns = {}
+                columns[tablename] = col
+
+                if 'with_table_col' in downstream_obj.keys():
+                    source = [tablename]
+                    with_tab, with_col = downstream_obj['with_table_col']
+                    source.append(with_tab)
+                    columns[with_tab] = with_col
+                else:
+                    source = tablename
+
+                down_table = ref.table
+                down_col = ref.column
+                columns[down_table] = down_col
+                cascade_row = ref.cascade_row
+                
+                if down_table not in exclude_tables and self.has_table(down_table):
+                    if cascade_row:
+                        updated_table = self.prune_table_from_table_column(down_table, source, columns=columns)
+                    else:
+                        # TODO cleanup -- this call can only accept a single source, so source here must be a single table name
+                        updated_table = self.remove_invalid_references_to_table_column(down_table, down_col, source, col)
+                    if tablename not in exclude_tables:
+                        exclude_tables.append(tablename)
+                    if not updated_table.equals(original_df):
+                        self.update_table(down_table, updated_table, exclude_tables=exclude_tables, cascade=cascade_row)
+
+    def update_upstream_tables(self, tablename, exclude_tables=None):
+        # removes upstream references that are no longer used
+        if exclude_tables is None: 
+            exclude_tables = []
+
+        table = self._tables[tablename]
+        original_df = table.get_df().copy()
+
+        for col in table.upstream_columns.keys():
+            upstream = table.upstream_columns[col]
+
+            for ref in upstream['references']:
+                up_table = ref.table
+                up_col = ref.column
+                cascade_row = ref.cascade_row
+                if up_table not in exclude_tables and self.has_table(up_table):
+                    columns = {}
+                    columns[tablename] = col
+                    columns[up_table] = up_col
+                    if cascade_row:
+                        updated_table = self.prune_table_from_table_column(up_table, tablename, columns=columns)
+                    else:
+                        updated_table = self.remove_invalid_references_to_table_column(up_table, up_col, tablename, col)
+                    if tablename not in exclude_tables:
+                        exclude_tables.append(tablename)
+                    if not updated_table.equals(original_df):
+                        self.update_table(up_table, updated_table, exclude_tables=exclude_tables, cascade=cascade_row)
 
     def clear_table(self, tablename):
         df = self.get_table(tablename)
@@ -127,28 +197,72 @@ class GTFS:
 
         return has_any_service
 
-    def run_function_on_all_tables(self, func):
+    def run_function_on_all_tables(self, func, cascade=True):
         # func should be a function that accepts a df
 
         for tablename in self._tables.keys():
             df = self.get_table(tablename)
             new_df = func(df)
-            self.update_table(tablename, new_df)
-
-    # def close_tables(self):
-    #     self._gtfsreader.cleanup_gtfs_files_in_data_dir()
+            self.update_table(tablename, new_df, cascade=cascade)
 
     def copy(self):
         c = GTFS()
-        c._tables = get_df_dict_copy(self._tables)
-        c._original_tables = get_df_dict_copy(self._original_tables)
+        table_copies = {}
+        for tablename in self._tables.keys():
+            table_copies[tablename] = self._tables[tablename].copy()
+        c._tables = table_copies
         return c
 
+    def remove_invalid_references_to_table_column(self, target, target_col, source, source_col):
+        # unsets values in target table column that do not exist in source table column
+        # source can only be string here -- no practical need for multiple sources
 
-def get_df_dict_copy(dict):
-    # helper for copy
-    copy = {}
-    for key in dict.keys():
-        copy[key] = dict[key].copy()
+        if not self.has_table(target): return pd.DataFrame()
+        target_df = self.get_table(target, index=False)
 
-    return copy
+        if not self.has_table(source): return target_df
+        source_df = self.get_table(source, index=False)
+
+        target_df['ref_valid'] = (target_df[target_col].isna() | target_df[target_col].isin(source_df[source_col]))
+
+        target_df[target_col] = target_df.apply(lambda row: row[target_col] if row['ref_valid'] == True else np.nan, axis=1)
+
+        return target_df
+
+    def prune_table_from_table_column(self, target, source, columns={}):
+        # remove rows from target if column value not present in same column of source,  e.g.:
+        #   prune_table_from_table_column('transfers', 'stops', columns={'transfers': 'from_stop_id', 'stops': 'stop_id'})
+
+        if not self.has_table(target): return pd.DataFrame()
+
+        target_df = self.get_table(target, index=False)
+        target_col = columns[target]
+
+        if isinstance(source, list):
+            # make source columns consistent before concat
+            # new col name doesn't matter as long as its unique within table
+            source_dfs = {}
+            for tablename in source:
+                if self.has_table(tablename):
+                    source_dfs[tablename] = self.get_table(tablename, index=False)
+
+            source_col = 'source_col'
+            for tablename in source_dfs.keys():
+                col_rename = {}
+                col_rename[columns[tablename]] = source_col
+                source_dfs[tablename] = source_dfs[tablename].rename(columns=col_rename)
+                columns[tablename] = source_col
+            
+            source_df = pd.concat( \
+                list(source_dfs.values()),
+                axis=0,
+                ignore_index=True
+            )
+        else:
+            if not self.has_table(source): return target_df
+
+            source_df = self.get_table(source, index=False)
+            source_col = columns[source]
+        target_pruned = target_df[target_df[target_col].isna() | (target_df[target_col].isin(source_df[source_col]))]
+        
+        return target_pruned
