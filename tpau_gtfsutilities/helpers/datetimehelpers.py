@@ -101,6 +101,6 @@ def seconds_since_zero(military):
     return hours * 3600 + minutes * 60 + seconds
 
 def safe_seconds_since_zero(x):
-    nan = type(x) == float and np.isnan(x)
+    nan = (type(x) == str and x == '') or (type(x) == float and np.isnan(x))
     ssz = seconds_since_zero(x) if not nan else None
     return ssz

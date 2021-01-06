@@ -31,8 +31,9 @@ def get_trip_bounds(gtfs_override=None):
 
     def min_miliary_arrival_time(grouped):
         trip_id = grouped.name
+        grouped_df = grouped.to_frame()
         
-        grouped_df = grouped.to_frame() \
+        grouped_df = grouped_df[grouped_df[trip_id] != ''] \
             .assign(seconds_since_zero = lambda df: df[trip_id].transform(lambda t: seconds_since_zero(t)))
 
         idx_of_min = grouped_df['seconds_since_zero'].idxmin(axis=0)
@@ -41,7 +42,9 @@ def get_trip_bounds(gtfs_override=None):
 
     def max_miliary_arrival_time(grouped):
         trip_id = grouped.name
-        grouped_df = grouped.to_frame() \
+        grouped_df = grouped.to_frame()
+
+        grouped_df = grouped_df[grouped_df[trip_id] != ''] \
             .assign(seconds_since_zero = lambda df: df[trip_id].transform(lambda t: seconds_since_zero(t)))
 
         idx_of_max = grouped_df['seconds_since_zero'].idxmax(axis=0)

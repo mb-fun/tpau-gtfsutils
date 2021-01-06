@@ -5,8 +5,6 @@ from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDateRange
 from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDate
 
 def filter_calendars_by_daterange(daterange):
-    # TODO: check that calendar doesn't have an exception in range before removing
-    # should maybe consider combining this function and filter_calendar_dates_by_daterange
 
     calendar = gtfs.get_table('calendar')
     filter_daterange = GTFSDateRange(daterange['start'], daterange['end'])
@@ -38,8 +36,6 @@ def filter_calendars_by_daterange(daterange):
     calendar['end_date'] = calendar['_overlap'].apply(lambda dr: dr.end.datestring())
 
     gtfs.update_table('calendar', calendar)
-    remove_trips_with_nonexistent_calendars()
-    
 
 def filter_calendar_dates_by_daterange(daterange):
     if not gtfs.has_table('calendar_dates'): return
@@ -53,7 +49,6 @@ def filter_calendar_dates_by_daterange(daterange):
     calendar_dates_filtered = calendar_dates[calendar_dates['_inrange']]
 
     gtfs.update_table('calendar_dates', calendar_dates_filtered)
-    remove_trips_with_nonexistent_calendars()
 
 def remove_trips_with_nonexistent_calendars():
     calendar = gtfs.get_table('calendar', index=False)
