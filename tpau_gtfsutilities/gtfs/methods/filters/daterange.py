@@ -11,7 +11,7 @@ def filter_calendars_by_daterange(daterange):
 
     calendar['_gtfs_daterange'] = calendar.apply(lambda row: GTFSDateRange(row['start_date'], row['end_date']), axis=1)
     calendar['_overlap'] = calendar['_gtfs_daterange'].apply(lambda dr: \
-        filter_daterange.overlap(dr) \
+        filter_daterange.get_overlap(dr) \
     )
 
     # we want to remove calendar entries that don't overlap DOWs 
@@ -86,3 +86,14 @@ def reset_feed_dates(daterange):
     feed_info['feed_end_date'] = gtfs_daterange.end.datestring()
 
     gtfs.update_table('feed_info', feed_info)
+
+def get_feed_calendar_service_daterange():
+    calendar = gtfs.get_table('calendar')
+    calendar_min_start = calendar['start_date'].min()
+    calendar_max_end = calendar['end_date'].max()
+    return GTFSDateRange(calendar_min_start, calendar_max_end)
+
+def get_feed_start_end_daterange():
+    if not gtfs.has_table('feed_info'): return None
+    feed_info = gtfs.get_table('feed_info')
+    return GTFSDateRange(feed_info.loc[0, 'feed_start_date'], feed_info.loc[0, 'feed_end_date'])

@@ -4,6 +4,9 @@ from tpau_gtfsutilities.config.utilityconfig import utilityconfig
 from tpau_gtfsutilities.config.utilityoutput import utilityoutput
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
 from tpau_gtfsutilities.gtfs.gtfsreader import GTFSReader
+from tpau_gtfsutilities.gtfs.methods.filters import daterange
+from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDateRange
+from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDate
 
 # Base class for utilities
 class GTFSUtility:
@@ -37,6 +40,7 @@ class GTFSUtility:
 
     def load_and_run_on_feed(self, feed, settings):
         self.load_feed_into_gtfs_singleton(feed)
+        self.warn_if_any_input_dates_outside_gtfs_singleton_bounds(settings)
         self.configure_output(feed)
         self.run_on_gtfs_singleton(settings)
         if self.write_feed:
@@ -53,3 +57,46 @@ class GTFSUtility:
         # TODO: This functionality should be moved elsewhere
         feed_no_extension = feed[:-4]
         utilityoutput.set_feedname(feed_no_extension)
+
+    def warn_if_date_not_within_gtfs_calendar_bounds(self, input_date):
+        calendar_dr = daterange.get_feed_calendar_service_daterange()
+        if not calendar_dr.includes(input_date):
+            print("WARNING: no service found for this date in calendar.txt: ")
+            print("     Input date: " + input_date.datestring())
+            print("     Min/max calendar bounds : (" + calendar_dr.start.datestring() + ", " + calendar_dr.end.datestring() + ")")
+    
+    def warn_if_date_not_within_feed_bounds(self, input_date):
+        feed_dr = daterange.get_feed_start_end_daterange()
+        if feed_dr is None: return
+
+        if not feed_dr.includes(input_date):
+            print("WARNING: Input date outside of feed start/end dates: ")
+            print("     Input date: " + input_date.datestring())
+            print("     Feed start/end (as found in feed_info.txt) : (" + feed_dr.start.datestring() + ", " + feed_dr.end.datestring() + ")")
+    
+    def warn_if_daterange_not_within_gtfs_calendar_bounds(self, input_dr):
+        calendar_dr = daterange.get_feed_calendar_service_daterange()
+        if not calendar_dr.overlaps(input_dr):
+            print("WARNING: no service found for these dates in calendar.txt: ")
+            print("     Input daterange: (" + input_dr.start.datestring() + ", " + input_dr.end.datestring() + ")")
+            print("     Min/max calendar bounds : (" + calendar_dr.start.datestring() + ", " + calendar_dr.end.datestring() + ")")
+
+    def warn_if_daterange_not_within_feed_bounds(self, input_dr):
+        feed_dr = daterange.get_feed_start_end_daterange()
+        if feed_dr is None: return
+
+        if not feed_dr.overlaps(input_dr):
+            print("WARNING: Input daterange outside of feed start/end dates: ")
+            print("     Input daterange: (" + input_dr.start.datestring() + ", " + input_dr.end.datestring() + ")")
+            print("     Feed start/end (as found in feed_info.txt) : (" + feed_dr.start.datestring() + ", " + feed_dr.end.datestring() + ")")
+
+    def warn_if_any_input_dates_outside_gtfs_singleton_bounds(self, settings):
+        if 'date_range' in settings:
+            input_dr = GTFSDateRange(settings['date_range']['start'], settings['date_range']['end'])
+            self.warn_if_daterange_not_within_gtfs_calendar_bounds(input_dr)
+            self.warn_if_daterange_not_within_feed_bounds(input_dr)
+
+        if 'date' in settings:
+            input_date = GTFSDate(settings['date'])
+            self.warn_if_date_not_within_gtfs_calendar_bounds(input_date)
+            self.warn_if_date_not_within_feed_bounds(input_date)
