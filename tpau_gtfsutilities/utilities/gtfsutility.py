@@ -76,8 +76,9 @@ class GTFSUtility:
     
     def warn_if_daterange_not_within_gtfs_calendar_bounds(self, input_dr):
         calendar_dr = daterange.get_feed_calendar_service_daterange()
-        if not calendar_dr.overlaps(input_dr):
-            print("WARNING: no service found for these dates in calendar.txt: ")
+
+        if not calendar_dr.includes_daterange(input_dr):
+            print("WARNING: daterange includes dates not within feed's calendar bounds: ")
             print("     Input daterange: (" + input_dr.start.datestring() + ", " + input_dr.end.datestring() + ")")
             print("     Min/max calendar bounds : (" + calendar_dr.start.datestring() + ", " + calendar_dr.end.datestring() + ")")
 
@@ -85,8 +86,8 @@ class GTFSUtility:
         feed_dr = daterange.get_feed_start_end_daterange()
         if feed_dr is None: return
 
-        if not feed_dr.overlaps(input_dr):
-            print("WARNING: Input daterange outside of feed start/end dates: ")
+        if not feed_dr.includes_daterange(input_dr):
+            print("WARNING: daterange includes dates not within feed start/end dates: ")
             print("     Input daterange: (" + input_dr.start.datestring() + ", " + input_dr.end.datestring() + ")")
             print("     Feed start/end (as found in feed_info.txt) : (" + feed_dr.start.datestring() + ", " + feed_dr.end.datestring() + ")")
 

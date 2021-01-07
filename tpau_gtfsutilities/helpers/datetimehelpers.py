@@ -24,6 +24,11 @@ class GTFSDateRange:
 
     def includes(self, date):
         return self.start.before(date, inclusive=True) and self.end.after(date, inclusive=True)
+    
+    def includes_daterange(self, daterange):
+        includes_start = self.includes(daterange.start)
+        includes_end = self.includes(daterange.end)
+        return includes_start and includes_end
 
     def get_overlap(self, other_daterange):
         max_start = max(self.start.date, other_daterange.start.date)
