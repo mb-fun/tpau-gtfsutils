@@ -10,8 +10,6 @@ def filter_trips_by_date(date):
     trips_extended = get_trips_extended()
 
     dow = GTFSDate(date).dow()
-    date = int(date)
-
 
     if gtfs.has_table('calendar'):
         date_in_range = (trips_extended['start_date'] <= date) & (date <= trips_extended['end_date'])
