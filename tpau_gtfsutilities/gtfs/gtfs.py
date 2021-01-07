@@ -243,7 +243,7 @@ class GTFS:
             # new col name doesn't matter as long as its unique within table
             source_dfs = {}
             for tablename in source:
-                if self.has_table(tablename):
+                if self.has_table(tablename, check_empty=False):
                     source_dfs[tablename] = self.get_table(tablename, index=False)
 
             source_col = 'source_col'
