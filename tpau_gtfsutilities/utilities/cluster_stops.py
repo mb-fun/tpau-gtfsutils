@@ -43,3 +43,5 @@ class ClusterStops(GTFSUtility):
 
         gtfs_collection.write_all_feeds()
 
+        utilityoutput.write_metadata(settings)
+

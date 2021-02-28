@@ -38,6 +38,8 @@ class GTFSUtility:
             else:
                 self.load_and_run_on_feed(feed, settings)
 
+        utilityoutput.write_metadata(settings)
+
     def load_and_run_on_feed(self, feed, settings):
         self.load_feed_into_gtfs_singleton(feed)
         self.warn_if_any_input_dates_outside_gtfs_singleton_bounds(settings)
