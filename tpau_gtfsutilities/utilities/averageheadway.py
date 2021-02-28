@@ -10,6 +10,7 @@ class AverageHeadway(GTFSUtility):
     name = 'average_headway'
 
     def run_on_gtfs_singleton(self, settings):
+        output_file = 'average_headways.csv'
 
         time_ranges_defined = 'time_ranges' in settings.keys() \
             and not isinstance(settings['time_ranges'], str) \
@@ -18,10 +19,10 @@ class AverageHeadway(GTFSUtility):
 
         if not time_ranges_defined:
             filter_trips_by_date(settings['date'])
-            utilityoutput.write_or_append_to_output_csv(calculate_average_headways(settings['date'], None))
+            utilityoutput.write_or_append_to_output_csv(calculate_average_headways(settings['date'], None), output_file)
         else:
             for timerange in settings['time_ranges']:
                 filter_trips_by_date(settings['date'])
                 filter_single_trips_by_timerange(timerange)
                 filter_repeating_trips_by_timerange(timerange)
-                utilityoutput.write_or_append_to_output_csv(calculate_average_headways(settings['date'], timerange))
+                utilityoutput.write_or_append_to_output_csv(calculate_average_headways(settings['date'], timerange), output_file)
