@@ -6,7 +6,7 @@ from tpau_gtfsutilities.config.utilityoutput import utilityoutput
 from tpau_gtfsutilities.gtfs.methods.helpers import triphelpers
 from tpau_gtfsutilities.gtfs.methods.helpers.calendarhelpers import GTFSServiceCalendar
 
-def calculate_stop_visits(write_csv=True, gtfs_override=None, include_removed_stops=True):
+def calculate_stop_visits(gtfs_override=None, include_removed_stops=True):
     # For each stop, comma separated values, CR/LF for new stop/row
     #     Agency ID (if aggregate=False)
     #     Agency Name (if aggregate=False)
@@ -25,9 +25,6 @@ def calculate_stop_visits(write_csv=True, gtfs_override=None, include_removed_st
     else:
         stops_report = calculate_stop_visits_multi_agency(gtfs_override=gtfs, include_removed_stops=include_removed_stops)
 
-    if write_csv:
-        utilityoutput.write_or_append_to_output_csv(stops_report, 'stop_visit_report.csv', index=False)
-    
     return stops_report
 
 def calculate_stop_visits_single_agency(gtfs_override=None, include_removed_stops=True):

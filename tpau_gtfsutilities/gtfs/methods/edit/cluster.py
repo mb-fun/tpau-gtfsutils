@@ -107,7 +107,7 @@ def get_clusters(radius):
 
 def sort_stops_by_visits(stops_df):
 
-    stop_visits = gtfs_collection.get_combined_computed_table(lambda gtfs: calculate_stop_visits(write_csv=False, gtfs_override=gtfs))
+    stop_visits = gtfs_collection.get_combined_computed_table(lambda gtfs: calculate_stop_visits(gtfs_override=gtfs))
     stop_visits = stop_visits[['feed', 'stop_id', 'visit_counts']]
 
     if (gtfs_collection.has_multiagency_feed()):

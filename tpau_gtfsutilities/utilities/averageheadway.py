@@ -1,5 +1,6 @@
 from .gtfsutility import GTFSUtility
 
+from tpau_gtfsutilities.config.utilityoutput import utilityoutput
 from tpau_gtfsutilities.gtfs.methods.filters.date import filter_trips_by_date
 from tpau_gtfsutilities.gtfs.methods.filters.timerange import filter_single_trips_by_timerange
 from tpau_gtfsutilities.gtfs.methods.filters.timerange import filter_repeating_trips_by_timerange
@@ -17,10 +18,10 @@ class AverageHeadway(GTFSUtility):
 
         if not time_ranges_defined:
             filter_trips_by_date(settings['date'])
-            calculate_average_headways(settings['date'], None)
+            utilityoutput.write_or_append_to_output_csv(calculate_average_headways(settings['date'], None))
         else:
             for timerange in settings['time_ranges']:
                 filter_trips_by_date(settings['date'])
                 filter_single_trips_by_timerange(timerange)
                 filter_repeating_trips_by_timerange(timerange)
-                calculate_average_headways(settings['date'], timerange)
+                utilityoutput.write_or_append_to_output_csv(calculate_average_headways(settings['date'], timerange))

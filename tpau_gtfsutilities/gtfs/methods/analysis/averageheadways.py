@@ -59,8 +59,7 @@ def calculate_average_headways(date, time_range):
         output['trip_start_times'] = np.empty((len(output), 0)).tolist()
         output['average_headway_mintes'] = 0
 
-        utilityoutput.write_or_append_to_output_csv(output, 'average_headways.csv')
-        return
+        return output
 
     unwrapped_repeating_trips = triphelpers.get_unwrapped_repeating_trips()
 
@@ -106,5 +105,5 @@ def calculate_average_headways(date, time_range):
     # fill empty trip start times with empty list
     output['trip_start_times'] = output['trip_start_times'].apply(lambda d: d if isinstance(d, list) else [])
 
-    utilityoutput.write_or_append_to_output_csv(output, 'average_headways.csv', index=True)
+    return output.reset_index()
 
