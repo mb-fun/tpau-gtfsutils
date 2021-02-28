@@ -59,7 +59,7 @@ def calculate_average_headways(date, time_range):
         output['trip_start_times'] = np.empty((len(output), 0)).tolist()
         output['average_headway_mintes'] = 0
 
-        return output
+        return output.reset_index()
 
     unwrapped_repeating_trips = triphelpers.get_unwrapped_repeating_trips()
 
