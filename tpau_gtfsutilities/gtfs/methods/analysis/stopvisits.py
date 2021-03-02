@@ -44,7 +44,10 @@ def calculate_stop_visits_single_agency(gtfs_override=None, include_removed_stop
         how='left', \
         right_index=True, \
         left_index=True \
-    ).fillna(0)
+    ) \
+        .fillna(0) \
+        .astype({'visit_counts': 'int32'})
+
 
     # service date is included here because board/alight information isn't useful if 
     # it is not known to be within specified daterange
@@ -240,7 +243,7 @@ def get_stop_visit_counts(gtfs_override=None):
 
     trip_scheduled_stops_with_service['service_trips'] = \
         trip_scheduled_stops_with_service['trip_counts'] * trip_scheduled_stops_with_service['active_days']
-
+        
     stop_service_counts = trip_scheduled_stops_with_service[['stop_id', 'service_trips']].groupby(['stop_id']).sum()
 
     return stop_service_counts.rename(columns={'service_trips':'visit_counts'})
