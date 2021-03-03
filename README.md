@@ -9,7 +9,7 @@
 ### Installation/Setup (Windows)
 
 - Download repository by running `git clone git@github.com:anniekfifer/tpau-gtfsutils.git` in the CMD tool
-- In the Anaconda Prompt application, run `initial-setup.bat` from the project root directory 
+- In the Anaconda Prompt application, run `build.bat` from the project root directory 
 
 ### Configuring and running a utility
 
