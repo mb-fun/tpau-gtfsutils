@@ -117,7 +117,9 @@ def calculate_stop_visits_multi_agency(gtfs_override=None, include_removed_stops
 
     stop_visits = get_multi_agency_stop_visit_counts(gtfs_override=gtfs)
 
-    agency_stops = agency_stops.merge(stop_visits, how='left', left_index=True, right_index=True).fillna(0)
+    agency_stops = agency_stops.merge(stop_visits, how='left', left_index=True, right_index=True) \
+        .fillna(0) \
+        .astype({'visit_counts': 'int32'})
 
     # service date is included here because board/alight information isn't useful if 
     # it is not known to be within specified daterange
@@ -188,7 +190,9 @@ def get_multi_agency_stop_visit_counts(gtfs_override=None):
             how='left', \
             left_on='trip_id', \
             right_index=True \
-        ).fillna(1)
+        ) \
+        .fillna(1) \
+        .astype({'trip_counts': 'int32'})
     else:
         # single trips have a trip_count of 1
         agency_trip_stops['trip_counts'] = 1
@@ -227,7 +231,9 @@ def get_stop_visit_counts(gtfs_override=None):
             how='left', \
             left_on='trip_id', \
             right_index=True \
-        ).fillna(1)
+        ) \
+        .fillna(1) \
+        .astype({'trip_counts': 'int32'})
     else:
         # single trips have a trip_count of 1
         trip_scheduled_stops['trip_counts'] = 1
