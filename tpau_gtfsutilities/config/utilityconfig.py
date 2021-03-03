@@ -8,6 +8,7 @@ class _UtilityConfig:
     current_time_range = None # Needed for average_headway utility
     config_file = None
     input_dir = None
+    settings = None
 
     def set_utility(self, utility):
         # utiltiy is one of:
@@ -21,12 +22,13 @@ class _UtilityConfig:
 
     def set_config_file(self, cf):
         self.config_file = cf
+        self.settings = yaml.load(open(cf), Loader=yaml.BaseLoader)
     
     def set_input_dir(self, dir):
         self.input_dir = dir
 
     def get_settings(self):
-        return yaml.load(open(self.get_config_file()), Loader=yaml.BaseLoader)
+        return self.settings
 
     def get_input_dir(self):
         default_input_dir = 'data'

@@ -10,6 +10,7 @@ class OneDay(GTFSUtility):
         remove_exception_calendars()
 
         time_range_defined = 'time_range' in settings.keys() \
+            and not isinstance(settings['time_range'], str) \
             and 'start' in settings['time_range'].keys() \
             and 'end' in settings['time_range'].keys()
 

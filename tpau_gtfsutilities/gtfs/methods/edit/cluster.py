@@ -18,13 +18,12 @@ def cluster_stops(radius):
         right_on=['old_feed', 'old_stop_id'],
     ).set_index(['feed', 'stop_id'])['tap_id']
 
-
     for feed in gtfs_collection.feeds.keys():
         gtfs = gtfs_collection.feeds[feed]
 
         add_taps_to_stops(gtfs, feed, taps, cluster_taps)
-        remove_clustered_stops_from_stops(gtfs, feed, cluster_taps)
         replace_clustered_stops_everywhere(gtfs, feed, cluster_taps)
+        remove_clustered_stops_from_stops(gtfs, feed, cluster_taps)
 
 
 def get_new_taps(clusters):
@@ -59,7 +58,7 @@ def get_clusters(radius):
 
     stops = gtfs_collection.get_combined_gtfs_table('stops')
 
-    stops_gdf = gpd.GeoDataFrame(stops, geometry=gpd.points_from_xy(stops['stop_lon'], stops['stop_lat']), crs={'init' :'epsg:4326'})
+    stops_gdf = gpd.GeoDataFrame(stops, geometry=gpd.points_from_xy(stops['stop_lon'], stops['stop_lat']), crs='epsg:4326')
     stops_gdf = stops_gdf.to_crs(epsg=2992)
      
     radius_in_feet = float(radius) * 5280
@@ -91,9 +90,9 @@ def get_clusters(radius):
 
         for cand_idx, cand in stops_slice.iterrows():
             for stop_idx, stop in stops_gdf.iterrows():
-                cand_available = cand['stop_id'] != stop['stop_id'] and np.isnan(cand['cluster_stop_id'])
-                stop_available = np.isnan(stop['cluster_stop_id'])
-                if cand['stop_id'] != stop['stop_id'] and cand_available and stop_available and cand['buffer'].contains(stop['geometry']):
+                not_clustered = type(cand['cluster_stop_id']) == float and np.isnan(cand['cluster_stop_id'])
+                cand_available = cand['stop_id'] != stop['stop_id'] and not_clustered
+                if cand['stop_id'] != stop['stop_id'] and cand_available and not_clustered and cand['buffer'].contains(stop['geometry']):
                     stops_gdf.loc[cand_idx, 'cluster_stop_id'] = cand['stop_id']
                     stops_gdf.loc[stop_idx, 'cluster_stop_id'] = cand['stop_id']
                     stops_gdf.loc[cand_idx, 'cluster_feed'] = cand['feed']
@@ -108,7 +107,7 @@ def get_clusters(radius):
 
 def sort_stops_by_visits(stops_df):
 
-    stop_visits = gtfs_collection.get_combined_computed_table(lambda gtfs: calculate_stop_visits(write_csv=False, gtfs_override=gtfs))
+    stop_visits = gtfs_collection.get_combined_computed_table(lambda gtfs: calculate_stop_visits(gtfs_override=gtfs))
     stop_visits = stop_visits[['feed', 'stop_id', 'visit_counts']]
 
     if (gtfs_collection.has_multiagency_feed()):

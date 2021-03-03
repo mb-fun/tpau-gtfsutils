@@ -99,6 +99,6 @@ def interpolate_stop_times():
     stop_times['arrival_time'] = stop_times['arrival_time'].fillna(stop_times['interp'])
     stop_times['departure_time'] = stop_times['departure_time'].fillna(stop_times['interp'])
 
-    gtfs.update_table('stop_times', stop_times.reset_index())
+    gtfs.update_table('stop_times', stop_times.reset_index(), cascade=False)
 
     return True

@@ -15,11 +15,6 @@ IF "%1" == "" (
 
 CALL conda activate gtfsutils
 
-IF "%2" == "" (
-    python main.py -u %1
-)
-ELSE (
-    python main.py -u %1 -c %2
-)
+IF "%2" == "" (python main.py -u %1) ELSE (python main.py -u %1 -c %2)
 
 CALL conda deactivate

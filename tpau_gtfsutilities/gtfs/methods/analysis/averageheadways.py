@@ -20,9 +20,13 @@ def calculate_average_headways(date, time_range):
     #   Trip Start Time, Trip Start Time, Trip Start Time, … [for each trip that starts during specified time period(s)]
 
     trips_extended = triphelpers.get_trips_extended().reset_index()
+    trips = gtfs.get_table('trips', original=True)
 
-    route_direction_pairs = gtfs.get_table('trips', original=True)[['route_id', 'direction_id']] \
-        .drop_duplicates()
+    if not ('direction_id' in trips.columns):
+        trips['direction_id'] = ''
+        trips_extended['direction_id'] = ''
+
+    route_direction_pairs = trips[['route_id', 'direction_id']].drop_duplicates()
     route_direction_pairs = route_direction_pairs.set_index(['route_id', 'direction_id'])
 
     agency_info = gtfs.get_table('agency')[['agency_id','agency_name']]
@@ -55,8 +59,7 @@ def calculate_average_headways(date, time_range):
         output['trip_start_times'] = np.empty((len(output), 0)).tolist()
         output['average_headway_mintes'] = 0
 
-        utilityoutput.write_or_append_to_output_csv(output, 'average_headways.csv')
-        return
+        return output.reset_index()
 
     unwrapped_repeating_trips = triphelpers.get_unwrapped_repeating_trips()
 
@@ -81,7 +84,7 @@ def calculate_average_headways(date, time_range):
     trip_start_times['delta_seconds'] = trip_start_times['start_time_seconds'].diff()
     first_trip_in_route_dir = (trip_start_times['route_id'] != trip_start_times['route_id'].shift(1)) \
         | ( \
-            ~np.isnan(trip_start_times['direction_id']) \
+            (trip_start_times['direction_id'] != '') \
             & (trip_start_times['direction_id'] != trip_start_times['direction_id'].shift(1)) \
         )
 
@@ -102,5 +105,5 @@ def calculate_average_headways(date, time_range):
     # fill empty trip start times with empty list
     output['trip_start_times'] = output['trip_start_times'].apply(lambda d: d if isinstance(d, list) else [])
 
-    utilityoutput.write_or_append_to_output_csv(output, 'average_headways.csv', index=True)
+    return output.reset_index()
 
