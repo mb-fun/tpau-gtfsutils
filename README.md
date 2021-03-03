@@ -17,10 +17,8 @@
 - Copy or move any input GTFS is in the `data/` folder (GTFS in this folder will be read from, but not be altered in any way)
 - To run a utility:
   - Open Anaconda Prompt application
-  -  In project root directory, run `tpau-utils.bat` with the appropriate utility name (i.e., `tpau-utils.bat average_headway`)
-    - Utilities:
-      - Average Headway (`average_headway`): Generates csv report of average headways by route
-      - One Day (`one_day`): Produces a subset of the feed within the given date or date range and time with service exceptions removed.
+  -  In project root directory, run `tpau-utils.bat` with the appropriate utility name, where the utility is one of: average_headway, one_day, interpolate_stoptimes, stop_visits, cluster_stops, and optionally a path to the config file (if omitted this will look for a `yaml` file with the utility name, i.e `average_headway.yaml`). Example:
+    -  `tpau-utils.bat average_headway myconfig.yaml`
 
 ### Configuring and running example
 
