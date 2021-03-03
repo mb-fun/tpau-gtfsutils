@@ -1,5 +1,6 @@
 import os
 import zipfile
+from datetime import datetime
 
 class _UtilityOutput:
     utility = None
@@ -11,6 +12,7 @@ class _UtilityOutput:
         # utiltiy is one of:
         #   average_headways
         #   one_day
+        #   etc.
 
         self.utility = utility
         self.create_utilty_output_dir()
@@ -41,6 +43,17 @@ class _UtilityOutput:
         if not (os.path.exists(out_dir)):
             os.mkdir(out_dir)
         return out_dir
+
+    def write_metadata(self, settings):
+        filename = 'metadata.txt'
+        f = open(os.path.join(self.get_utility_output_dir(), filename), 'a')
+        timestamp = datetime.now().strftime('%m/%d/%Y %H:%M:%S')
+        f.write('Created at ' + timestamp + '\n')
+        f.write('Utility: ' + self.utility + '\n')
+        for setting in settings:
+            value = str(settings[setting])
+            text = setting + ': ' + value + '\n'
+            f.write(text)
 
     def write_or_append_to_output_csv(self, df, filename, index=False):
         csvfile = os.path.join(self.get_output_dir(), filename)

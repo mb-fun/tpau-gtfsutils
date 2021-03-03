@@ -3,6 +3,7 @@ from shapely.geometry import MultiPolygon
 
 from .gtfsutility import GTFSUtility
 from tpau_gtfsutilities.config.utilityconfig import utilityconfig
+from tpau_gtfsutilities.config.utilityoutput import utilityoutput
 
 from tpau_gtfsutilities.gtfs.methods.edit.calendars import remove_exception_calendars
 from tpau_gtfsutilities.gtfs.methods.filters.subset import subset_entire_feed
@@ -27,7 +28,7 @@ class StopVisits(GTFSUtility):
             and 'end' in settings['time_range'].keys()
     
         if time_range_defined:
-            subset_entire_feed(settings['date_range'], settings['time_range'])
+            subset_entire_feed(settings['date_range'], settings['time_range'], trim_trips=True)
         else:
             subset_entire_feed(settings['date_range'])
 
@@ -38,4 +39,4 @@ class StopVisits(GTFSUtility):
             multipolygon = self.read_multipolygon_from_file(polygon_file_path)
             filter_stops_by_multipolygon(multipolygon)
 
-        calculate_stop_visits()
+        utilityoutput.write_or_append_to_output_csv(calculate_stop_visits(), 'stop_visits.csv')

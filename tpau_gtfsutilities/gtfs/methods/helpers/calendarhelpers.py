@@ -3,7 +3,9 @@ import datetime
 import numpy as np
 
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs as gtfssingleton
-from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDateRange, GTFSDateRange
+from tpau_gtfsutilities.gtfs.gtfsenums import GTFSBool, GTFSExceptionType
+from tpau_gtfsutilities.gtfs.properties import DOWS
+from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDateRange, GTFSDateRange, GTFSDate
 
 class GTFSServiceCalendar:
     daterange = None
@@ -21,18 +23,16 @@ class GTFSServiceCalendar:
         self.daterange = GTFSDateRange(calendar_row.loc['start_date'], calendar_row.loc['end_date'])
 
         # dows
-        dow_list = ['monday', 'tuesday', 'wednesday', 'thursday', \
-            'friday', 'saturday', 'sunday']
-        for day in dow_list:
-            self.dows[day] = (calendar_row.loc[day] == 1)
+        for day in DOWS:
+            self.dows[day] = (calendar_row.loc[day] == GTFSBool.TRUE)
 
         # exceptions
         if self._gtfs.has_table('calendar_dates'):
             calendar_dates = self._gtfs.get_table('calendar_dates')
             exceptions = calendar_dates[calendar_dates['service_id'] == service_id]
-            added_exceptions = exceptions[exceptions['exception_type'] == 1]
+            added_exceptions = exceptions[exceptions['exception_type'] == GTFSExceptionType.ADDED]
             self.added_dates = added_exceptions['date'].astype(str).tolist()
-            removed_exceptions = exceptions[exceptions['exception_type'] == 2]
+            removed_exceptions = exceptions[exceptions['exception_type'] == GTFSExceptionType.REMOVED]
             self.removed_dates = removed_exceptions['date'].astype(str).tolist()
 
     def num_active_days(self):
@@ -50,7 +50,7 @@ class GTFSServiceCalendar:
         # if added_dates are not in daterange or are not on served dow, add to day_count
         for ad in self.added_dates:
             added_date = GTFSDate(ad)
-            if (not self.daterange.includes(added_date)) and (not self.dows[added_date.dow()]):
+            if (not self.daterange.includes(added_date)) or (not self.dows[added_date.dow()]):
                 day_count += 1
 
         return day_count

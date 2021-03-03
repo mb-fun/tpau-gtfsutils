@@ -7,11 +7,11 @@ from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs as gtfs_singleton
 from tpau_gtfsutilities.helpers.datetimehelpers import seconds_since_zero
 from tpau_gtfsutilities.helpers.datetimehelpers import seconds_to_military
 
-def get_trip_duration_seconds(gtfs_override=None):
+def get_trip_duration_seconds(gtfs_override=None, trip_bounds=None):
     # returns trip duration series 'duration_seconds'
     gtfs = gtfs_override if gtfs_override else gtfs_singleton
 
-    trip_bounds = get_trip_bounds(gtfs_override=gtfs)
+    trip_bounds = trip_bounds if trip_bounds is not None else get_trip_bounds(gtfs_override=gtfs)
     trip_durations_df = trip_bounds.assign( \
         duration_seconds = \
             trip_bounds['end_time'].transform(seconds_since_zero) \
@@ -31,8 +31,9 @@ def get_trip_bounds(gtfs_override=None):
 
     def min_miliary_arrival_time(grouped):
         trip_id = grouped.name
+        grouped_df = grouped.to_frame()
         
-        grouped_df = grouped.to_frame() \
+        grouped_df = grouped_df[grouped_df[trip_id] != ''] \
             .assign(seconds_since_zero = lambda df: df[trip_id].transform(lambda t: seconds_since_zero(t)))
 
         idx_of_min = grouped_df['seconds_since_zero'].idxmin(axis=0)
@@ -41,7 +42,9 @@ def get_trip_bounds(gtfs_override=None):
 
     def max_miliary_arrival_time(grouped):
         trip_id = grouped.name
-        grouped_df = grouped.to_frame() \
+        grouped_df = grouped.to_frame()
+
+        grouped_df = grouped_df[grouped_df[trip_id] != ''] \
             .assign(seconds_since_zero = lambda df: df[trip_id].transform(lambda t: seconds_since_zero(t)))
 
         idx_of_max = grouped_df['seconds_since_zero'].idxmax(axis=0)
@@ -88,8 +91,10 @@ def get_trips_extended(gtfs_override=None):
         trips_extended = trips_extended.reset_index() \
             .merge(calendar_info, how='left', on='service_id').set_index('trip_id')
     
-    trips_extended = trips_extended.merge(get_trip_bounds(gtfs_override=gtfs), left_index=True, right_index=True)
-    trips_extended = trips_extended.merge(get_trip_duration_seconds(gtfs_override=gtfs), left_index=True, right_index=True)
+    trip_bounds = get_trip_bounds(gtfs_override=gtfs)
+    trips_extended = trips_extended.merge(trip_bounds, left_index=True, right_index=True)
+    
+    trips_extended = trips_extended.merge(get_trip_duration_seconds(gtfs_override=gtfs, trip_bounds=trip_bounds), left_index=True, right_index=True)
 
     frequencies = gtfs.get_table('frequencies')
     trips_extended['is_repeating'] = \
@@ -152,7 +157,7 @@ def get_unwrapped_repeating_trips(gtfs_override=None):
     frequencies.rename(columns={'start_time': 'frequency_start', 'end_time': 'frequency_end' }, inplace=True)
 
     # expand into row per each occurring trip
-    frequencies['trip_order'] = np.floor( \
+    frequencies['trip_order'] = np.ceil( \
             (frequencies['frequency_end'].transform(seconds_since_zero) - frequencies['frequency_start'].transform(seconds_since_zero)) \
             / frequencies['headway_secs'].transform(int) \
         ).transform(lambda x: list(range(int(x))))

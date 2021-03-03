@@ -5,35 +5,13 @@ import yaml
 
 from tpau_gtfsutilities.config.utilityconfig import utilityconfig
 from tpau_gtfsutilities.config.utilityoutput import utilityoutput
-from tpau_gtfsutilities.utilities.averageheadway import AverageHeadway
-from tpau_gtfsutilities.utilities.oneday import OneDay
-from tpau_gtfsutilities.utilities.stopvisits import StopVisits
-from tpau_gtfsutilities.utilities.interpolate_stoptimes import InterpolateStoptimes
-from tpau_gtfsutilities.utilities.cluster_stops import ClusterStops
-
-def get_utility_runner(utility):
-    utilityrunner = None
-    if utility == 'average_headway':
-        return AverageHeadway()
-    if utility == 'one_day':
-        return OneDay()
-    if utility == 'stop_visits':
-        return StopVisits()
-    if utility == 'interpolate_stoptimes':
-        return InterpolateStoptimes()
-    if utility == 'cluster_stops':
-        return ClusterStops()
+from tpau_gtfsutilities.utilities.utility_manager import UtilityManager
 
 def run():
     parser = argparse.ArgumentParser()
+    utilitymanager = UtilityManager()
+    valid_utilities = utilitymanager.get_utilities()
 
-    valid_utilities = [ \
-        'average_headway', \
-        'one_day', \
-        'stop_visits', \
-        'interpolate_stoptimes', \
-        'cluster_stops', \
-    ]
     utility_help = 'Utility name. Must be one of: ' + '\n'.join(valid_utilities)
     input_help = 'Input directory (defaults to data/)'
     output_help = 'Output directory (defaults to output/)'
@@ -63,7 +41,7 @@ def run():
 
     utilityoutput.initialize_utility(utility)
 
-    utilityrunner = get_utility_runner(utility)
+    utilityrunner = utilitymanager.get_utility(utility)
     utilityrunner.run(continue_on_error=continue_on_error)
 
 

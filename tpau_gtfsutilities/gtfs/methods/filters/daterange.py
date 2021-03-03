@@ -1,36 +1,41 @@
 import numpy as np
 from tpau_gtfsutilities.gtfs.gtfssingleton import gtfs
+from tpau_gtfsutilities.gtfs.gtfsenums import GTFSBool
 from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDateRange
 from tpau_gtfsutilities.helpers.datetimehelpers import GTFSDate
 
 def filter_calendars_by_daterange(daterange):
-    # TODO: check that calendar doesn't have an exception in range before removing
-    # should maybe consider combining this function and filter_calendar_dates_by_daterange
 
     calendar = gtfs.get_table('calendar')
     filter_daterange = GTFSDateRange(daterange['start'], daterange['end'])
 
     calendar['_gtfs_daterange'] = calendar.apply(lambda row: GTFSDateRange(row['start_date'], row['end_date']), axis=1)
     calendar['_overlap'] = calendar['_gtfs_daterange'].apply(lambda dr: \
-        filter_daterange.overlap(dr) \
+        filter_daterange.get_overlap(dr) \
     )
 
-
-    # remove calendar entries that don't overlap DOWs 
+    # we want to remove calendar entries that don't overlap DOWs 
     calendar['_dows_overlap'] = calendar.apply(lambda row: \
-        True in (row[dow] for dow in filter_daterange.days_of_week()),
+        GTFSBool.TRUE in (row[dow] for dow in filter_daterange.days_of_week()),
         axis=1
     )
+    
+    # we want to keep calendar entries that are used in overlapping exceptions 
+    if gtfs.has_table('calendar_dates'):
+        calendar_dates = gtfs.get_table('calendar_dates')
+        calendar_dates['_date_overlap'] = calendar_dates.apply(lambda row: filter_daterange.includes(row['date']), axis=1)
+        calendar_dates = calendar_dates[calendar_dates['_date_overlap']]
+        calendar['_exception_overlap'] = calendar.index.to_series().isin(calendar_dates['service_id'])
+    else:
+        calendar['_exception_overlap'] = False
 
-    calendar = calendar[calendar['_overlap'].notnull() & calendar['_dows_overlap']]
+    calendar = calendar[(calendar['_overlap'].notnull() & calendar['_dows_overlap']) | calendar['_exception_overlap']]
 
     # trim bounds to fit within daterange
     calendar['start_date'] = calendar['_overlap'].apply(lambda dr: dr.start.datestring())
     calendar['end_date'] = calendar['_overlap'].apply(lambda dr: dr.end.datestring())
 
     gtfs.update_table('calendar', calendar)
-    remove_trips_with_nonexistent_calendars()
-    
 
 def filter_calendar_dates_by_daterange(daterange):
     if not gtfs.has_table('calendar_dates'): return
@@ -44,13 +49,17 @@ def filter_calendar_dates_by_daterange(daterange):
     calendar_dates_filtered = calendar_dates[calendar_dates['_inrange']]
 
     gtfs.update_table('calendar_dates', calendar_dates_filtered)
-    remove_trips_with_nonexistent_calendars()
 
 def remove_trips_with_nonexistent_calendars():
     calendar = gtfs.get_table('calendar', index=False)
-    trips = gtfs.get_table('trips')
     
+    trips = gtfs.get_table('trips')
     trips_filtered = trips[trips['service_id'].isin(calendar['service_id'])]
+
+    if (gtfs.has_table('frequencies')):
+        frequencies = gtfs.get_table('frequencies')
+        frequencies_filtered = frequencies[frequencies['trip_id'].isin(trips_filtered.index.to_series())]
+        gtfs.update_table('frequencies', frequencies_filtered)
 
     gtfs.update_table('trips', trips_filtered)
 
@@ -77,3 +86,14 @@ def reset_feed_dates(daterange):
     feed_info['feed_end_date'] = gtfs_daterange.end.datestring()
 
     gtfs.update_table('feed_info', feed_info)
+
+def get_feed_calendar_service_daterange():
+    calendar = gtfs.get_table('calendar')
+    calendar_min_start = calendar['start_date'].min()
+    calendar_max_end = calendar['end_date'].max()
+    return GTFSDateRange(calendar_min_start, calendar_max_end)
+
+def get_feed_start_end_daterange():
+    if not gtfs.has_table('feed_info'): return None
+    feed_info = gtfs.get_table('feed_info')
+    return GTFSDateRange(feed_info.loc[0, 'feed_start_date'], feed_info.loc[0, 'feed_end_date'])
