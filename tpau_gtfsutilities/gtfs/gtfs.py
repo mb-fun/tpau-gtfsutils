@@ -219,8 +219,10 @@ class GTFS:
 
         if not self.has_table(target): return pd.DataFrame()
         target_df = self.get_table(target, index=False)
-
+        
         if not self.has_table(source): return target_df
+        if not self.table_has_column(target, target_col): return target_df
+
         source_df = self.get_table(source, index=False)
 
         target_df['ref_valid'] = (target_df[target_col].isna() | target_df[target_col].isin(source_df[source_col]))
