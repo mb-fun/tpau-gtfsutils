@@ -39,4 +39,7 @@ class StopVisits(GTFSUtility):
             multipolygon = self.read_multipolygon_from_file(polygon_file_path)
             filter_stops_by_multipolygon(multipolygon)
 
-        utilityoutput.write_or_append_to_output_csv(calculate_stop_visits(), 'stop_visits.csv')
+        stop_visits_report = calculate_stop_visits()
+        stop_visits_report['start_time'] = settings['time_range']['start']
+        stop_visits_report['end_time'] = settings['time_range']['end']
+        utilityoutput.write_or_append_to_output_csv(stop_visits_report, 'stop_visits.csv', write_gtfs_filename=True)

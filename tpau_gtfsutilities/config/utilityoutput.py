@@ -55,8 +55,10 @@ class _UtilityOutput:
             text = setting + ': ' + value + '\n'
             f.write(text)
 
-    def write_or_append_to_output_csv(self, df, filename, index=False):
+    def write_or_append_to_output_csv(self, df, filename, index=False, write_gtfs_filename=False):
         csvfile = os.path.join(self.get_output_dir(), filename)
+        if write_gtfs_filename:
+            df['gtfs_filename'] = self._feedname
         if os.path.exists(csvfile):
             df.to_csv(csvfile, mode='a', header=False, index=index)
         else:

@@ -25,4 +25,4 @@ class AverageHeadway(GTFSUtility):
                 filter_trips_by_date(settings['date'])
                 filter_single_trips_by_timerange(timerange)
                 filter_repeating_trips_by_timerange(timerange)
-                utilityoutput.write_or_append_to_output_csv(calculate_average_headways(settings['date'], timerange), output_file)
+                utilityoutput.write_or_append_to_output_csv(calculate_average_headways(settings['date'], timerange), output_file, write_gtfs_filename=True)
