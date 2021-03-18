@@ -18,7 +18,7 @@ class StopVisits(GTFSUtility):
         # returns a multipolygon so both polygon and multipolygon
         # inputs can be read
 
-        gdf = gpd.read_file(filepath).to_crs(epsg=2992)
+        gdf = gpd.read_file(filepath).to_crs(epsg=4326)
         return MultiPolygon(gdf.geometry.iloc[0])
 
     def run_on_gtfs_singleton(self, settings):
