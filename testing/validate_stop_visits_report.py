@@ -30,10 +30,10 @@ def main():
 
     results = utils_df.merge( \
         tnext_df,
-        how='left',
+        how='outer',
         left_on=[util_cols['agency_id'], util_cols['stop_id']],
         right_on=[tnext_cols['agency_id'], tnext_cols['stop_id']]
-    )
+    ).fillna(0)
 
     non_matching_results = results[results[util_cols['visits']] != results[tnext_cols['visits']]]
     non_matching_results = non_matching_results.rename(columns={ util_cols['visits']: 'GTFS Utils Visits', tnext_cols['visits']: 'TNeXT Visits' })
