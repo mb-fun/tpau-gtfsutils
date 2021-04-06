@@ -16,6 +16,7 @@ from .tables.shapes import Shapes
 from .tables.stops import Stops
 from .tables.stop_times import StopTimes
 from .tables.trips import Trips
+from .tables.board_alight import BoardAlight
 from .tables.gtfstable import GTFSTable
 
 table_classes = {
@@ -26,7 +27,8 @@ table_classes = {
     'shapes': Shapes,
     'stops': Stops,
     'stop_times': StopTimes,
-    'trips': Trips
+    'trips': Trips,
+    'board_alight': BoardAlight,
 }
 
 class GTFS:
@@ -67,7 +69,7 @@ class GTFS:
             tables[tablename] = table[self.get_columns(tablename, index=True)]
         utilityoutput.write_to_zip(tables, feedname)
 
-    def get_table(self, tablename, index=True, original=False):
+    def get_table(self, tablename, index=True, original=False, column=None):
         if tablename not in self._tables.keys():
             return pd.DataFrame()
         
@@ -77,12 +79,19 @@ class GTFS:
         if not index and len(table.index):
             df = df.reset_index()
 
+        if column and table_has_column(tablename, column):
+            return df.copy()[column]
+            
         return df.copy()
 
     def has_table(self, tablename, check_empty=True):
         if check_empty:
             return tablename in self._tables.keys() and not self.get_table(tablename).empty
         return tablename in self._tables.keys()
+
+    def reset_original_tables(self):
+        for table in self._tables.keys():
+            self._tables[table].reset_original()
 
     def table_has_column(self, tablename, column):
         return column in self.get_columns(tablename)
@@ -261,10 +270,11 @@ class GTFS:
                 ignore_index=True
             )
         else:
-            if not self.has_table(source): return target_df
+            if not self.has_table(source, check_empty=False): return target_df
 
             source_df = self.get_table(source, index=False)
             source_col = columns[source]
+
         target_pruned = target_df[target_df[target_col].isna() | (target_df[target_col].isin(source_df[source_col]))]
         
         return target_pruned

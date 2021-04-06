@@ -21,13 +21,13 @@ def get_trip_duration_seconds(gtfs_override=None, trip_bounds=None):
     return trip_durations_df['duration_seconds']
 
 
-def get_trip_bounds(gtfs_override=None):
+def get_trip_bounds(gtfs_override=None, original=False):
     # returns trip bounds dataframe
     #   index: trip_id
     #   columns: start_time, end_time
     gtfs = gtfs_override if gtfs_override else gtfs_singleton
 
-    stop_times = gtfs.get_table('stop_times')
+    stop_times = gtfs.get_table('stop_times', original=original)
 
     def min_miliary_arrival_time(grouped):
         trip_id = grouped.name
@@ -64,7 +64,7 @@ def get_trip_bounds(gtfs_override=None):
     return pd.concat([min_arrival_times, max_arrival_times], axis=1)
 
 
-def get_trips_extended(gtfs_override=None):
+def get_trips_extended(gtfs_override=None, original=False):
     # returns trips with agency, calendar and time information
     # start_date, end_date
     # daygroups
@@ -77,10 +77,10 @@ def get_trips_extended(gtfs_override=None):
     # agency name
     gtfs = gtfs_override if gtfs_override else gtfs_singleton
 
-    trips_extended = gtfs.get_table('trips')
+    trips_extended = gtfs.get_table('trips', original=original)
 
     if gtfs.has_table('calendar'):
-        calendar = gtfs.get_table('calendar')
+        calendar = gtfs.get_table('calendar', original=original)
         calendar_info = calendar[ \
             [
                 'start_date', 'end_date', \
@@ -91,18 +91,18 @@ def get_trips_extended(gtfs_override=None):
         trips_extended = trips_extended.reset_index() \
             .merge(calendar_info, how='left', on='service_id').set_index('trip_id')
     
-    trip_bounds = get_trip_bounds(gtfs_override=gtfs)
+    trip_bounds = get_trip_bounds(gtfs_override=gtfs, original=original)
     trips_extended = trips_extended.merge(trip_bounds, left_index=True, right_index=True)
     
     trips_extended = trips_extended.merge(get_trip_duration_seconds(gtfs_override=gtfs, trip_bounds=trip_bounds), left_index=True, right_index=True)
 
-    frequencies = gtfs.get_table('frequencies')
+    frequencies = gtfs.get_table('frequencies', original=original)
     trips_extended['is_repeating'] = \
         trips_extended.index.to_series().isin(frequencies['trip_id']) \
         if gtfs.has_table('frequencies') else False
 
     # agency information
-    agency = gtfs.get_table('agency')
+    agency = gtfs.get_table('agency', original=original)
     if not gtfs.is_multiagency():
         agency_row = agency.iloc[0]
         trips_extended['agency_name'] = agency_row['agency_name']
@@ -111,7 +111,7 @@ def get_trips_extended(gtfs_override=None):
         else:
             trips_extended['agency_id'] = ''
     else:
-        route_agencies = gtfs.get_table('routes')['agency_id']
+        route_agencies = gtfs.get_table('routes', original=original)['agency_id']
         trips_extended = trips_extended.reset_index()
         trips_extended = trips_extended.merge( \
             route_agencies,
@@ -127,7 +127,7 @@ def get_trips_extended(gtfs_override=None):
         )
         trips_extended = trips_extended.set_index('trip_id')
 
-    route_types = gtfs.get_table('routes')['route_type']
+    route_types = gtfs.get_table('routes', original=original)['route_type']
     trips_extended = trips_extended \
         .reset_index() \
         .merge(

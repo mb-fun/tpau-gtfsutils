@@ -36,10 +36,16 @@ class ClusterStops(GTFSUtility):
             gtfs_collection.add_feed(gtfs.copy(), feed_no_extension)
 
         cluster_stops(settings['cluster_radius'])
+
+        # reset original data so stop_visits reports with new stops
+        for feedname in gtfs_collection.feeds.keys():
+            gtfsfeed = gtfs_collection.feeds[feedname]
+            gtfsfeed.reset_original_tables()
         
         # write stop visits report with clustered stops
-        combined_visits_report = gtfs_collection.get_combined_computed_table(lambda gtfs: calculate_stop_visits(gtfs_override=gtfs, include_removed_stops=False))
-        utilityoutput.write_or_append_to_output_csv(combined_visits_report, 'stop_visit_report.csv', index=False)
+        combined_visits_report = gtfs_collection.get_combined_computed_table(lambda gtfs: calculate_stop_visits(gtfs_override=gtfs))
+        
+        utilityoutput.write_or_append_to_output_csv(combined_visits_report, 'stop_visit_report.csv')
 
         gtfs_collection.write_all_feeds()
 

@@ -40,6 +40,10 @@ class StopVisits(GTFSUtility):
             filter_stops_by_multipolygon(multipolygon)
 
         stop_visits_report = calculate_stop_visits()
-        stop_visits_report['start_time'] = settings['time_range']['start']
-        stop_visits_report['end_time'] = settings['time_range']['end']
+        if time_range_defined:
+            stop_visits_report['start_time'] = settings['time_range']['start']
+            stop_visits_report['end_time'] = settings['time_range']['end']
+        else:
+            stop_visits_report['start_time'] = ''
+            stop_visits_report['end_time'] = ''
         utilityoutput.write_or_append_to_output_csv(stop_visits_report, 'stop_visits.csv', write_gtfs_filename=True)

@@ -4,7 +4,7 @@ from tpau_gtfsutilities.gtfs.properties import NUMERIC_DTYPES
 class GTFSTable:
     index = []
     df = None
-    original_df = None
+    original_df = None # helpful for including original data in reports on filtered data 
     columns = []
     # dict of columns -> downstream references in table that other tables
     # refer to -- used for cascading data removal
@@ -77,6 +77,9 @@ class GTFSTable:
             columns = self.columns.copy()
 
         return columns
+
+    def reset_original(self):
+        self.original_df = self.df
 
     def copy(self):
         # returns a new class instance with
