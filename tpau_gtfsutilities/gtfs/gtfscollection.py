@@ -35,8 +35,11 @@ class GTFSCollection:
         df_dict = {}
         for feed in self.feeds.keys():
             gtfs = self.feeds[feed]
-            df = function(gtfs)
-            df_dict[feed] = df.reset_index()
+            df = function(gtfs).reset_index()
+            # drop index column if created by reset_index
+            if 'index' in df.columns.tolist():
+                df = df.drop(columns=['index'])
+            df_dict[feed] = df
 
         return combine_dfs_from_dict(df_dict, 'feed')
 

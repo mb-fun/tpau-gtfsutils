@@ -42,10 +42,15 @@ class ClusterStops(GTFSUtility):
             gtfsfeed = gtfs_collection.feeds[feedname]
             gtfsfeed.reset_original_tables()
         
-        # write stop visits report with clustered stops
-        combined_visits_report = gtfs_collection.get_combined_computed_table(lambda gtfs: calculate_stop_visits(gtfs_override=gtfs))
-        
-        utilityoutput.write_or_append_to_output_csv(combined_visits_report, 'stop_visit_report.csv')
+        # write stop visits report with clustered stops, ensure column order
+        combined_visits_report = gtfs_collection.get_combined_computed_table( \
+            lambda gtfs: calculate_stop_visits(gtfs_override=gtfs) \
+        )
+
+        # order columns for report (ordering is not preserved by get_combined_computed_table)
+        report_columns = ['feed', 'agency_id','agency_name','route_id','stop_id','stop_name','stop_lon','stop_lat','visit_counts','boardings','alightings']
+
+        utilityoutput.write_or_append_to_output_csv(combined_visits_report[report_columns], 'stop_visit_report.csv')
 
         gtfs_collection.write_all_feeds()
 
