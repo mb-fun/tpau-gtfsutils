@@ -63,7 +63,7 @@ Outputs GTFS feed with service reduced to input date and timeranges and with exc
 Outputs csv report of stop visits within provided date and time range, for each Agency/Stop pair in feed. Stops can be filtered by shapefile or geojson if provided. 
 
 Report csv headers:
-`agency_id,agency_name,stop_id,stop_name,stop_lat,stop_lon,visit_counts,boardings,alightings`
+`agency_id,agency_name,route_idstop_id,stop_name,stop_lat,stop_lon,visit_counts,boardings,alightings`
 
 ### GTFS Output Notes
 
