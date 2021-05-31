@@ -11,11 +11,10 @@ def filter_trips_by_date(date):
 
     dow = GTFSDate(date).dow()
 
-    if gtfs.has_table('calendar'):
-        date_in_range = (trips_extended['start_date'] <= date) & (date <= trips_extended['end_date'])
-        dow_in_service = trips_extended[dow] == GTFSBool.TRUE
+    date_in_range = (trips_extended['start_date'] <= date) & (date <= trips_extended['end_date'])
+    dow_in_service = trips_extended[dow] == GTFSBool.TRUE
 
-        trips_filter = date_in_range & dow_in_service
+    trips_filter = date_in_range & dow_in_service
     
     # filter calendar_dates for relevant calendar exceptions
     if gtfs.has_table('calendar_dates'):

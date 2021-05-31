@@ -78,8 +78,12 @@ class GTFSTable:
 
         return columns
 
-    def reset_original(self):
-        self.original_df = self.df
+    def update_original(self):
+        # only needed for rare circumstances
+        self.original_df = self.df.copy()
+    
+    def reset_to_original(self):
+        self.df = self.original_df.copy()
 
     def copy(self):
         # returns a new class instance with

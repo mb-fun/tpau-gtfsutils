@@ -89,9 +89,13 @@ class GTFS:
             return tablename in self._tables.keys() and not self.get_table(tablename).empty
         return tablename in self._tables.keys()
 
-    def reset_original_tables(self):
+    def update_original_tables(self):
         for table in self._tables.keys():
-            self._tables[table].reset_original()
+            self._tables[table].update_original()
+    
+    def reset_to_original_tables(self):
+        for table in self._tables.keys():
+            self._tables[table].reset_to_original()
 
     def table_has_column(self, tablename, column):
         return column in self.get_columns(tablename)

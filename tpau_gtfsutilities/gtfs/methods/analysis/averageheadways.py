@@ -32,7 +32,7 @@ def calculate_average_headways(date, time_range):
     agency_info = gtfs.get_table('agency')[['agency_id','agency_name']]
 
     if 'agency_id' in gtfs.get_columns('routes'):
-        route_info = gtfs.get_table('routes')[['agency_id', 'route_long_name']]
+        route_info = gtfs.get_table('routes', original=True, index=False)[['route_id', 'agency_id', 'route_long_name']]
 
         output = route_direction_pairs.reset_index() \
             .merge(route_info, how='left', on='route_id') \
@@ -43,7 +43,7 @@ def calculate_average_headways(date, time_range):
 
     # No agency id in routes.txt means there is only one agency
     else:
-        route_info = gtfs.get_table('routes')['route_long_name']
+        route_info = gtfs.get_table('routes', original=True, index=False)[['route_id', 'route_long_name']]
         output = route_direction_pairs.reset_index() \
             .merge(route_info.to_frame(), how='left', on='route_id') \
             .set_index(['route_id', 'direction_id'])

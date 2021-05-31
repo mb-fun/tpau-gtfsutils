@@ -79,7 +79,7 @@ def get_trips_extended(gtfs_override=None, original=False):
 
     trips_extended = gtfs.get_table('trips', original=original)
 
-    if gtfs.has_table('calendar'):
+    if gtfs.has_table('calendar', check_empty=False):
         calendar = gtfs.get_table('calendar', original=original)
         calendar_info = calendar[ \
             [

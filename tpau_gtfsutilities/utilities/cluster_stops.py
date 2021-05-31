@@ -40,7 +40,7 @@ class ClusterStops(GTFSUtility):
         # reset original data so stop_visits reports with new stops
         for feedname in gtfs_collection.feeds.keys():
             gtfsfeed = gtfs_collection.feeds[feedname]
-            gtfsfeed.reset_original_tables()
+            gtfsfeed.update_original_tables()
         
         # write stop visits report with clustered stops, ensure column order
         combined_visits_report = gtfs_collection.get_combined_computed_table( \
