@@ -1,0 +1,7 @@
+name: gtfsutils
+dependencies:
+  - python=3.7
+  - pyyaml
+  - pandas
+  - geopandas
+  - shapely
