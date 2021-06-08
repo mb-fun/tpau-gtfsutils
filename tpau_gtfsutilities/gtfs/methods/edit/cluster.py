@@ -20,7 +20,7 @@ def cluster_stops(radius):
 
     for feed in gtfs_collection.feeds.keys():
         gtfs = gtfs_collection.feeds[feed]
-
+        
         add_taps_to_stops(gtfs, feed, taps, cluster_taps)
         replace_clustered_stops_everywhere(gtfs, feed, cluster_taps)
         remove_clustered_stops_from_stops(gtfs, feed, cluster_taps)
@@ -110,11 +110,7 @@ def sort_stops_by_visits(stops_df):
     stop_visits = gtfs_collection.get_combined_computed_table(lambda gtfs: calculate_stop_visits(gtfs_override=gtfs))
     stop_visits = stop_visits[['feed', 'stop_id', 'visit_counts']]
 
-    if (gtfs_collection.has_multiagency_feed()):
-        # aggregate stop visits across agencies
-        stop_visits = stop_visits.groupby(['feed', 'stop_id']).sum('visit_counts')
-    else:
-        stop_visits = stop_visits.set_index(['feed', 'stop_id'])
+    stop_visits = stop_visits.groupby(['feed', 'stop_id']).sum('visit_counts')
 
     stops_df = stops_df.merge( \
         stop_visits,
