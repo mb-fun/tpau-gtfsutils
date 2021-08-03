@@ -57,7 +57,7 @@ def calculate_average_headways(date, time_range):
 
     if trips_extended.empty:
         output['trip_start_times'] = np.empty((len(output), 0)).tolist()
-        output['average_headway_mintes'] = 0
+        output['average_headway_minutes'] = 0
 
         return output.reset_index()
 
