@@ -40,7 +40,7 @@ class GTFSTable:
         # updates dataframe (disallowing column changes) and trigger downstream and 
         # upstream changes
 
-        self.df = self.clean(df)
+        self.df = self.clean(df.copy())
 
     def get_df(self, original=False):
         if original:
