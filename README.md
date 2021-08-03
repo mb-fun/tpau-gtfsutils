@@ -6,29 +6,39 @@
 
 - Anaconda
 
-### Installation/Setup (Windows)
+### Installation/Setup
 
 - Download repository by running `git clone git@github.com:anniekfifer/tpau-gtfsutils.git` in the CMD tool
-- In the Anaconda Prompt application, run `build.bat` from the project root directory 
+- Windows
+  - In the Anaconda Prompt application, run `build.bat` from the project root directory 
+- Mac
+  - `. build.sh`
 
 ### Configuring and running a utility
 
 - Edit the input parameters in the appropriate config yaml file in the `config/` folder. Follow formatting guidelines in the file's comments. 
 - Copy or move any input GTFS is in the `data/` folder (GTFS in this folder will be read from, but not be altered in any way)
-- To run a utility:
+- Windows
   - Open Anaconda Prompt application
-  -  In project root directory, run `tpau-utils.bat` with the appropriate utility name (`average_headway`, `one_day`, `interpolate_stoptimes`, `stop_visits`, or `cluster_stops`) and optionally a path to the config file (if omitted this will look for a `yaml` file with the utility name, i.e `average_headway.yaml`). 
-    -  Example: `tpau-utils.bat average_headway myconfig.yaml`
+  -  In project root directory, run `tpau-utils.bat` with the appropriate utility name (see options below) and a path to the config file. 
+    -  Example: `tpau-utils.bat average_headway configs/myconfig.yaml`
+- Mac
+  - `conda activate gtfsutils`
+  - `python main.py -u utility_name -c path/to/config.yaml` (see options below)
+  - `conda deactivate`
 
-### Configuring and running example
-
-- Edit `config/average_headway.yaml` input parameters to use example values in comments
-- Make sure that `good_feed.zip` (included in repo for testing) is in `data/`
-- In the Anaconda Prompt application, run `tpau-utils.bat average_headway`
+### Options
+- Utilty name (`-u`). One of:
+  - `average_headway`
+  - `one_day`
+  - `interpolate_stoptimes`
+  - `stop_visits`
+  - `cluster_stops`
+- Config file (`-c`). Defaults to configs/utility_name.yaml (i.e. `configs/stop_visits.yaml`)
   
 ### Output
 
-- Application output will go to `output/` directory
+- Each run creates a directory in `output/` with the utility output (reports and/or feeds) and metadata.
 
 ## Behavior
 
@@ -63,7 +73,7 @@ Outputs GTFS feed with service reduced to input date and timeranges and with exc
 Outputs csv report of stop visits within provided date and time range, for each Route/Stop pair in feed. Stops can be filtered by shapefile or geojson if provided. 
 
 Report csv headers:
-`agency_id,agency_name,route_id, stop_id,stop_name,stop_lat,stop_lon,visit_counts,boardings,alightings`
+`agency_id,agency_name,route_id,stop_id,stop_name,stop_lat,stop_lon,visit_counts,boardings,alightings`
 
 ### GTFS Output Notes
 
