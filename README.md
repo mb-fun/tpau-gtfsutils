@@ -1,4 +1,4 @@
-# TPAU GTFS Utilities
+# GTFS Analysis Utilities
 
 ## How To Use
 
